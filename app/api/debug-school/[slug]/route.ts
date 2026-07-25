@@ -4,15 +4,16 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: { slug: string } }
+  { params }: { params: Promise<{ slug: string }> }
 ) {
+  const { slug } = await params;
   try {
     const schoolsRef = collection(db, 'schools');
-    const q = query(schoolsRef, where('slug', '==', params.slug));
+    const q = query(schoolsRef, where('slug', '==', slug));
     const snapshot = await getDocs(q);
     
     return NextResponse.json({ 
-      slug: params.slug,
+      slug: slug,
       count: snapshot.size,
       found: !snapshot.empty,
       schools: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
