@@ -23,13 +23,7 @@ export function StickyNav() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <svg className="w-10 h-10" viewBox="0 0 40 40" fill="none">
-              <circle cx="20" cy="20" r="18" stroke="var(--ink)" strokeWidth="2" />
-              <circle cx="20" cy="20" r="12" stroke="var(--gold)" strokeWidth="1.5" />
-              <circle cx="20" cy="20" r="6" stroke="var(--ink)" strokeWidth="1.5" />
-              <path d="M20 14c1.5 0 2.5 1 2.5 2.5s-1 2.5-2.5 2.5-2.5-1-2.5-2.5 1-2.5 2.5-2.5z" fill="var(--banyan)" />
-              <path d="M20 18l2 4h-4l2-4z" fill="var(--banyan)" />
-            </svg>
+            <img src="/images/logo.png" alt="The Gurukulam School" className="h-10 w-auto" />
             <div className="flex flex-col">
               <span className="font-bold text-lg leading-tight" style={{ fontFamily: 'var(--font-alegreya)', color: 'var(--ink)' }}>
                 The Gurukulam School
