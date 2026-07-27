@@ -13,9 +13,11 @@ export default function LoginForm() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8 border border-gray-100">
           <div className="text-center space-y-3">
-            <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg">
-              <span className="text-white text-2xl font-bold">G</span>
-            </div>
+            <img 
+              src="/images/logo.png" 
+              alt="The Gurukulam School" 
+              className="w-20 h-20 mx-auto object-contain"
+            />
             <div>
               <h2 className="text-3xl font-bold text-gray-900 font-alegreya">
                 Welcome to Gurukulam
