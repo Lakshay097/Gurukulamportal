@@ -54,6 +54,6 @@ export const config = {
      * Match only protected routes to reduce proxy overhead
      * Exclude: static files, images, favicon, public folder, and known public routes
      */
-    '/((?!_next/static|_next/image|favicon.ico|public|api/auth|login|schools|documents|cbse-rules|my-groups|unauthorized).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public|images|api/auth|login|schools|documents|cbse-rules|my-groups|unauthorized).*)',
   ],
 };
