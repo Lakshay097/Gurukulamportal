@@ -47,7 +47,6 @@ function normalizeType(typeParam: string): string {
     'agreement': DOC_SECTION_TYPES.AGREEMENT,
     'loi': DOC_SECTION_TYPES.LOI,
     'schooloption': DOC_SECTION_TYPES.SCHOOL_OPTION,
-    'cbse_rules': DOC_SECTION_TYPES.CBSE_RULES,
     'kra_kpi': DOC_SECTION_TYPES.KRA_KPI,
     'training_module': DOC_SECTION_TYPES.TRAINING_MODULE,
   };

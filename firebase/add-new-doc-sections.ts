@@ -24,7 +24,7 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 
 /**
- * This script adds new central document sections for KRA&KPIs and Training Module
+ * This script adds new central document sections for KRA&KPIs, Training Module, and CBSE Rules
  * with their respective Google Drive folder IDs.
  */
 
@@ -42,6 +42,11 @@ async function addNewDocumentSections() {
       type: 'TRAINING_MODULE',
       driveFolderId: '1U-l1H12E9D5uTkDNhp1U9q9hYDdtGOWP',
       label: 'Training Module',
+    },
+    {
+      type: 'CBSERules',
+      driveFolderId: '1eW2fw7tYM0Lg3eOTYRZ7Av3CEJfUikm2',
+      label: 'CBSE Rules',
     },
   ];
 

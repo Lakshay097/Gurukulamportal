@@ -56,7 +56,6 @@ function normalizeType(typeParam: string): string {
     'agreement': DOC_SECTION_TYPES.AGREEMENT,
     'loi': DOC_SECTION_TYPES.LOI,
     'schooloption': DOC_SECTION_TYPES.SCHOOL_OPTION,
-    'cbse_rules': DOC_SECTION_TYPES.CBSE_RULES,
     'kra_kpi': DOC_SECTION_TYPES.KRA_KPI,
     'training_module': DOC_SECTION_TYPES.TRAINING_MODULE,
   };
@@ -71,7 +70,6 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   [DOC_SECTION_TYPES.AGREEMENT]: 'Agreements',
   [DOC_SECTION_TYPES.LOI]: 'Letters of Intent',
   [DOC_SECTION_TYPES.SCHOOL_OPTION]: 'School Options',
-  [DOC_SECTION_TYPES.CBSE_RULES]: 'CBSE Rules',
   [DOC_SECTION_TYPES.KRA_KPI]: 'KRA & KPIs',
   [DOC_SECTION_TYPES.TRAINING_MODULE]: 'Training Module',
 };
@@ -192,6 +190,17 @@ export default async function DocumentTypePathPage({
     
     try {
       const folderStructure = await getFolderStructure(section.driveFolderId);
+      
+      // Check if the target folder ID matches the section's drive folder ID (root folder)
+      if (section.driveFolderId === targetFolderId) {
+        targetFolder = folderStructure;
+        breadcrumbNames = [folderStructure.name];
+        breadcrumbSlugs = [createSlugWithId(folderStructure.name, folderStructure.id)];
+        sectionId = section.id;
+        break;
+      }
+      
+      // Otherwise, search for it as a subfolder
       targetFolder = findFolderById(folderStructure, targetFolderId);
       
       if (targetFolder) {
