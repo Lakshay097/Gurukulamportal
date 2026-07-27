@@ -56,6 +56,9 @@ function normalizeType(typeParam: string): string {
     'agreement': DOC_SECTION_TYPES.AGREEMENT,
     'loi': DOC_SECTION_TYPES.LOI,
     'schooloption': DOC_SECTION_TYPES.SCHOOL_OPTION,
+    'cbse_rules': DOC_SECTION_TYPES.CBSE_RULES,
+    'kra_kpi': DOC_SECTION_TYPES.KRA_KPI,
+    'training_module': DOC_SECTION_TYPES.TRAINING_MODULE,
   };
   const normalized = typeMap[typeParam.toLowerCase()];
   return normalized || typeParam;
@@ -68,6 +71,9 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   [DOC_SECTION_TYPES.AGREEMENT]: 'Agreements',
   [DOC_SECTION_TYPES.LOI]: 'Letters of Intent',
   [DOC_SECTION_TYPES.SCHOOL_OPTION]: 'School Options',
+  [DOC_SECTION_TYPES.CBSE_RULES]: 'CBSE Rules',
+  [DOC_SECTION_TYPES.KRA_KPI]: 'KRA & KPIs',
+  [DOC_SECTION_TYPES.TRAINING_MODULE]: 'Training Module',
 };
 
 

@@ -47,6 +47,7 @@ export default async function DocumentsPage() {
   
   const sections = await getDocumentSections();
   console.log('[DocumentsPage] Found sections:', sections.length);
+  console.log('[DocumentsPage] Sections:', JSON.stringify(sections, null, 2));
 
   // Filter to only show sections with driveFolderId
   const sectionsWithFolders = sections.filter(section => section.driveFolderId);

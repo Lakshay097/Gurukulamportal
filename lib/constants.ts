@@ -53,6 +53,8 @@ export const DOC_SECTION_TYPES = {
   LOI: 'LOI',
   SCHOOL_OPTION: 'SchoolOption',
   CBSE_RULES: 'CBSERules',
+  KRA_KPI: 'KRA_KPI',
+  TRAINING_MODULE: 'TRAINING_MODULE',
 } as const;
 
 // Document type labels
@@ -64,6 +66,8 @@ export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   [DOC_SECTION_TYPES.LOI]: 'Letters of Intent',
   [DOC_SECTION_TYPES.SCHOOL_OPTION]: 'School Options',
   [DOC_SECTION_TYPES.CBSE_RULES]: 'CBSE Rules',
+  [DOC_SECTION_TYPES.KRA_KPI]: 'KRA & KPIs',
+  [DOC_SECTION_TYPES.TRAINING_MODULE]: 'Training Module',
 };
 
 // Document section status

@@ -9,6 +9,7 @@ import { DOC_SECTION_TYPES, RESOURCE_TYPES } from '@/lib/constants';
 import { DOCUMENT_TYPE_LABELS } from '@/lib/constants';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+import { notFound } from 'next/navigation';
 
 interface DocumentSection {
   id: string;
@@ -38,6 +39,22 @@ async function getDocumentSections(): Promise<DocumentSection[]> {
   }
 }
 
+function normalizeType(typeParam: string): string {
+  const typeMap: Record<string, string> = {
+    'sop': DOC_SECTION_TYPES.SOP,
+    'draft': DOC_SECTION_TYPES.DRAFT,
+    'duediligence': DOC_SECTION_TYPES.DUE_DILIGENCE,
+    'agreement': DOC_SECTION_TYPES.AGREEMENT,
+    'loi': DOC_SECTION_TYPES.LOI,
+    'schooloption': DOC_SECTION_TYPES.SCHOOL_OPTION,
+    'cbse_rules': DOC_SECTION_TYPES.CBSE_RULES,
+    'kra_kpi': DOC_SECTION_TYPES.KRA_KPI,
+    'training_module': DOC_SECTION_TYPES.TRAINING_MODULE,
+  };
+  const normalized = typeMap[typeParam.toLowerCase()];
+  return normalized || typeParam;
+}
+
 export default async function DocumentPathPage({ params }: { params: Promise<{ path: string[] }> }) {
   const session = await getServerSession(authOptions);
   const userGroupKeys = (session as any)?.userGroupKeys || [];
@@ -63,11 +80,18 @@ export default async function DocumentPathPage({ params }: { params: Promise<{ p
   }
 
   const type = path[0];
+  const normalizedType = normalizeType(type);
+  const validTypes = Object.values(DOC_SECTION_TYPES);
+
+  if (!validTypes.includes(normalizedType as any)) {
+    notFound();
+  }
+
   const sections = await getDocumentSections();
   console.log('[DocumentPathPage] Found sections:', sections.length);
 
-  // Find the section matching the type
-  const section = sections.find(s => s.type.toLowerCase() === type.toLowerCase());
+  // Find the section matching the normalized type
+  const section = sections.find(s => s.type.toLowerCase() === normalizedType.toLowerCase());
   
   if (!section || !section.driveFolderId) {
     return (
