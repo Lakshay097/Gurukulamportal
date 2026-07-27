@@ -7,7 +7,7 @@ import { getFolderStructure } from '@/lib/drive';
 export async function GET(request: NextRequest) {
   const result = {
     session: null as any,
-    userGroupKeys: null as string[] | null,
+    userGroupKeys: [] as string[],
     folderId: null as string | null,
     resourceType: null as string | null,
     resourceId: null as string | null,
@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     result.resourceId = searchParams.get('resourceId') || 'l3WN81dHLQ59HcqMD1x3';
 
     // Check permissions
-    result.hasAccess = await canAccess(result.userGroupKeys, result.resourceType, result.resourceId);
+    result.hasAccess = await canAccess(result.userGroupKeys || [], result.resourceType, result.resourceId);
 
     if (result.hasAccess) {
       result.folderStructure = await getFolderStructure(result.folderId);
