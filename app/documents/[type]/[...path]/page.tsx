@@ -179,6 +179,10 @@ export default async function DocumentTypePathPage({
   const targetFolderSlug = path[path.length - 1];
   const targetFolderId = extractIdFromSlug(targetFolderSlug);
   
+  console.log('[DocumentTypePathPage] Target folder slug:', targetFolderSlug);
+  console.log('[DocumentTypePathPage] Extracted folder ID:', targetFolderId);
+  console.log('[DocumentTypePathPage] Number of sections:', sections.length);
+  
   // Find the section and get its folder structure
   let targetFolder: DriveFolder | null = null;
   let breadcrumbNames: string[] = [];
@@ -188,11 +192,17 @@ export default async function DocumentTypePathPage({
   for (const section of sections) {
     if (!section.driveFolderId) continue;
     
+    console.log('[DocumentTypePathPage] Checking section:', section.id, 'with drive folder:', section.driveFolderId);
+    
     try {
       const folderStructure = await getFolderStructure(section.driveFolderId);
       
+      console.log('[DocumentTypePathPage] Folder structure root ID:', folderStructure.id);
+      console.log('[DocumentTypePathPage] Folder structure root name:', folderStructure.name);
+      
       // Check if the target folder ID matches the section's drive folder ID (root folder)
       if (section.driveFolderId === targetFolderId) {
+        console.log('[DocumentTypePathPage] Found match at root level');
         targetFolder = folderStructure;
         breadcrumbNames = [folderStructure.name];
         breadcrumbSlugs = [createSlugWithId(folderStructure.name, folderStructure.id)];
@@ -204,6 +214,7 @@ export default async function DocumentTypePathPage({
       targetFolder = findFolderById(folderStructure, targetFolderId);
       
       if (targetFolder) {
+        console.log('[DocumentTypePathPage] Found match in subfolders');
         const breadcrumbData = buildBreadcrumbPath(folderStructure, targetFolderId);
         breadcrumbNames = breadcrumbData?.names || [targetFolder.name];
         breadcrumbSlugs = breadcrumbData?.slugs || [createSlugWithId(targetFolder.name, targetFolder.id)];
@@ -211,9 +222,12 @@ export default async function DocumentTypePathPage({
         break;
       }
     } catch (error) {
-      console.error('Error fetching folder structure:', error);
+      console.error('[DocumentTypePathPage] Error fetching folder structure:', error);
     }
   }
+  
+  console.log('[DocumentTypePathPage] Final targetFolder:', targetFolder ? 'found' : 'not found');
+  console.log('[DocumentTypePathPage] Final sectionId:', sectionId);
 
   if (!targetFolder || !sectionId) {
     return (

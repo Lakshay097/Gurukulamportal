@@ -15,10 +15,22 @@ export function createSlugWithId(name: string, id: string): string {
 }
 
 // Extract the ID from a slug-plus-ID pattern
+// Google Drive IDs are typically 33+ characters and can contain letters, numbers, hyphens, and underscores
 export function extractIdFromSlug(slugWithId: string): string {
+  // The slug part only contains lowercase letters, numbers, and hyphens
+  // Drive IDs can contain uppercase letters and underscores
+  // We find the position where uppercase letters start (beginning of Drive ID)
+  const uppercaseIndex = slugWithId.search(/[A-Z]/);
+  
+  if (uppercaseIndex > 0) {
+    // Find the hyphen before the uppercase letter
+    const hyphenIndex = slugWithId.lastIndexOf('-', uppercaseIndex);
+    if (hyphenIndex > 0) {
+      return slugWithId.substring(hyphenIndex + 1);
+    }
+  }
+  
+  // Fallback: if no uppercase found, try to extract last part after last hyphen
   const parts = slugWithId.split('-');
-  // The ID is the last part (assuming IDs don't contain hyphens)
-  // If the ID contains hyphens, we need a different approach
-  // For Google Drive IDs, they typically don't contain hyphens
   return parts[parts.length - 1];
 }
