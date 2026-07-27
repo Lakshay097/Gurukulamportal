@@ -19,27 +19,31 @@ export async function GET() {
   }
 
   try {
-    // Fetch all users
-    let users: any[] = [];
-    if (useAdminSDK && adminDb) {
-      const usersSnapshot = await adminDb.collection('users').get();
-      users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } else {
-      const usersQuery = query(collection(db, 'users'));
-      const usersSnapshot = await getDocs(usersQuery);
-      users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
-
-    // Fetch all groups
-    let groups: any[] = [];
-    if (useAdminSDK && adminDb) {
-      const groupsSnapshot = await adminDb.collection('groups').get();
-      groups = groupsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } else {
-      const groupsQuery = query(collection(db, 'groups'));
-      const groupsSnapshot = await getDocs(groupsQuery);
-      groups = groupsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
+    // Fetch all users and groups in parallel
+    const [users, groups] = await Promise.all([
+      (async () => {
+        let result: any[] = [];
+        if (useAdminSDK && adminDb) {
+          const snapshot = await adminDb.collection('users').get();
+          result = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } else {
+          const querySnapshot = await getDocs(query(collection(db, 'users')));
+          result = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+        return result;
+      })(),
+      (async () => {
+        let result: any[] = [];
+        if (useAdminSDK && adminDb) {
+          const snapshot = await adminDb.collection('groups').get();
+          result = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } else {
+          const querySnapshot = await getDocs(query(collection(db, 'groups')));
+          result = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+        return result;
+      })()
+    ]);
 
     return NextResponse.json({
       users,

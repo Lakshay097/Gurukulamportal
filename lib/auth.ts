@@ -80,29 +80,30 @@ export const authOptions: AuthOptions = {
           const groupIds = userData.groups || [];
           console.log('[Auth session] Group IDs:', groupIds);
           
-          // Fetch group keys from groups collection
+          // Fetch group keys from groups collection in parallel
           const groupKeysList: string[] = [];
-          for (const groupId of groupIds) {
-            console.log('[Auth session] Fetching group with ID:', groupId);
-            let groupData: any;
-            if (useAdminSDK && adminDb) {
-              const groupDoc = await adminDb.collection('groups').doc(groupId).get();
-              console.log('[Auth session] Group doc exists:', groupDoc.exists);
-              if (groupDoc.exists) {
-                groupData = groupDoc.data();
-                console.log('[Auth session] Group data:', groupData);
+          if (groupIds.length > 0) {
+            const groupPromises = groupIds.map(async (groupId: string) => {
+              try {
+                if (useAdminSDK && adminDb) {
+                  const groupDoc = await adminDb.collection('groups').doc(groupId).get();
+                  return groupDoc.exists ? groupDoc.data() : null;
+                } else {
+                  const groupDoc = await getDoc(doc(db, 'groups', groupId));
+                  return groupDoc.exists() ? groupDoc.data() : null;
+                }
+              } catch (error) {
+                console.error('[Auth session] Error fetching group:', groupId, error);
+                return null;
               }
-            } else {
-              const groupDoc = await getDoc(doc(db, 'groups', groupId));
-              console.log('[Auth session] Group doc exists:', groupDoc.exists());
-              if (groupDoc.exists()) {
-                groupData = groupDoc.data();
-                console.log('[Auth session] Group data:', groupData);
+            });
+            
+            const groupResults = await Promise.all(groupPromises);
+            groupResults.forEach((groupData) => {
+              if (groupData?.key) {
+                groupKeysList.push(groupData.key);
               }
-            }
-            if (groupData) {
-              groupKeysList.push(groupData.key);
-            }
+            });
           }
           
           console.log('[Auth session] Group keys list:', groupKeysList);

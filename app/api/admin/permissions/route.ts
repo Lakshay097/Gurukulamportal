@@ -19,38 +19,42 @@ export async function GET() {
   }
 
   try {
-    // Fetch all groups
-    let groups: any[] = [];
-    if (useAdminSDK && adminDb) {
-      const groupsSnapshot = await adminDb.collection('groups').get();
-      groups = groupsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } else {
-      const groupsQuery = query(collection(db, 'groups'));
-      const groupsSnapshot = await getDocs(groupsQuery);
-      groups = groupsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
-
-    // Fetch all document sections
-    let documentSections: any[] = [];
-    if (useAdminSDK && adminDb) {
-      const sectionsSnapshot = await adminDb.collection('documentSections').get();
-      documentSections = sectionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } else {
-      const sectionsQuery = query(collection(db, 'documentSections'));
-      const sectionsSnapshot = await getDocs(sectionsQuery);
-      documentSections = sectionsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
-
-    // Fetch all permission rules
-    let permissionRules: any[] = [];
-    if (useAdminSDK && adminDb) {
-      const rulesSnapshot = await adminDb.collection('permissionRules').get();
-      permissionRules = rulesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    } else {
-      const rulesQuery = query(collection(db, 'permissionRules'));
-      const rulesSnapshot = await getDocs(rulesQuery);
-      permissionRules = rulesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
+    // Fetch all groups, document sections, and permission rules in parallel
+    const [groups, documentSections, permissionRules] = await Promise.all([
+      (async () => {
+        let result: any[] = [];
+        if (useAdminSDK && adminDb) {
+          const snapshot = await adminDb.collection('groups').get();
+          result = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } else {
+          const querySnapshot = await getDocs(query(collection(db, 'groups')));
+          result = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+        return result;
+      })(),
+      (async () => {
+        let result: any[] = [];
+        if (useAdminSDK && adminDb) {
+          const snapshot = await adminDb.collection('documentSections').get();
+          result = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } else {
+          const querySnapshot = await getDocs(query(collection(db, 'documentSections')));
+          result = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+        return result;
+      })(),
+      (async () => {
+        let result: any[] = [];
+        if (useAdminSDK && adminDb) {
+          const snapshot = await adminDb.collection('permissionRules').get();
+          result = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } else {
+          const querySnapshot = await getDocs(query(collection(db, 'permissionRules')));
+          result = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        }
+        return result;
+      })()
+    ]);
 
     return NextResponse.json({
       groups,
