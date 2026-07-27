@@ -15,6 +15,19 @@ export const authOptions: AuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
+    async jwt({ token, user, trigger, session }: any) {
+      // Add userGroupKeys to token on initial sign in
+      if (user) {
+        token.userGroupKeys = user.userGroupKeys || [];
+      }
+      
+      // Update token when session is updated
+      if (trigger === 'update' && session?.userGroupKeys) {
+        token.userGroupKeys = session.userGroupKeys;
+      }
+      
+      return token;
+    },
     async signIn({ user, account }: any) {
       if (account?.provider !== 'google') return false;
       
@@ -30,58 +43,26 @@ export const authOptions: AuthOptions = {
         return false;
       }
       
-      // Create user in Firebase on first login with zero groups
+      // Create user in Firebase on first login with zero groups and fetch group keys
       console.log('[Auth signIn] Calling ensureUser...');
       try {
-        await ensureUser(email, user.name, user.image);
+        const userId = await ensureUser(email, user.name, user.image);
         console.log('[Auth signIn] ensureUser succeeded');
-      } catch (error) {
-        console.error('[Auth signIn] ensureUser failed:', error);
-        return false;
-      }
-      
-      console.log('[Auth signIn] Sign in approved');
-      return true;
-    },
-    async session({ session, user }: any) {
-      console.log('[Auth session] Session:', session);
-      console.log('[Auth session] User email:', session.user?.email);
-      
-      if (session.user?.email) {
-        // Fetch user from Firebase to get their groups
-        let userData: any;
         
+        // Fetch user's groups and group keys
+        let userData: any;
         if (useAdminSDK && adminDb) {
-          // Use Admin SDK to bypass security rules
-          console.log('[Auth session] Using Admin SDK to fetch user');
-          const snapshot = await adminDb.collection('users').where('email', '==', session.user.email).get();
-          console.log('[Auth session] User snapshot empty:', snapshot.empty);
-          if (!snapshot.empty) {
-            userData = snapshot.docs[0].data();
-            console.log('[Auth session] User data:', userData);
-          }
+          const snapshot = await adminDb.collection('users').doc(userId).get();
+          userData = snapshot.exists ? snapshot.data() : null;
         } else {
-          // Fallback to Client SDK
-          console.log('[Auth session] Using Client SDK to fetch user');
-          const usersQuery = query(
-            collection(db, 'users'),
-            where('email', '==', session.user.email)
-          );
-          const userSnapshot = await getDocs(usersQuery);
-          console.log('[Auth session] User snapshot empty:', userSnapshot.empty);
-          
-          if (!userSnapshot.empty) {
-            userData = userSnapshot.docs[0].data();
-            console.log('[Auth session] User data:', userData);
-          }
+          const userDoc = await getDoc(doc(db, 'users', userId));
+          userData = userDoc.exists() ? userDoc.data() : null;
         }
         
-        if (userData) {
-          const groupIds = userData.groups || [];
-          console.log('[Auth session] Group IDs:', groupIds);
-          
-          // Fetch group keys from groups collection in parallel
+        if (userData?.groups) {
+          const groupIds = userData.groups;
           const groupKeysList: string[] = [];
+          
           if (groupIds.length > 0) {
             const groupPromises = groupIds.map(async (groupId: string) => {
               try {
@@ -93,7 +74,7 @@ export const authOptions: AuthOptions = {
                   return groupDoc.exists() ? groupDoc.data() : null;
                 }
               } catch (error) {
-                console.error('[Auth session] Error fetching group:', groupId, error);
+                console.error('[Auth signIn] Error fetching group:', groupId, error);
                 return null;
               }
             });
@@ -106,16 +87,25 @@ export const authOptions: AuthOptions = {
             });
           }
           
-          console.log('[Auth session] Group keys list:', groupKeysList);
-          (session as any).userGroupKeys = groupKeysList;
-        } else {
-          console.log('[Auth session] No user data found, setting empty group keys');
-          (session as any).userGroupKeys = [];
+          // Add userGroupKeys to user object for JWT callback
+          (user as any).userGroupKeys = groupKeysList;
+          console.log('[Auth signIn] User group keys:', groupKeysList);
         }
-      } else {
-        console.log('[Auth session] No email in session');
+      } catch (error) {
+        console.error('[Auth signIn] ensureUser failed:', error);
+        return false;
       }
       
+      console.log('[Auth signIn] Sign in approved');
+      return true;
+    },
+    async session({ session, token }: any) {
+      // Pass userGroupKeys from JWT token to session
+      if (token?.userGroupKeys) {
+        (session as any).userGroupKeys = token.userGroupKeys;
+      } else {
+        (session as any).userGroupKeys = [];
+      }
       return session;
     },
   },

@@ -1,12 +1,36 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { HeroSection } from '@/components/hero-section';
-import { HomeContentSection } from '@/components/home-content-section';
-import { NetworkSection } from '@/components/network-section';
-import { WhyUsSection } from '@/components/why-us-section';
-import { DarkCTABand } from '@/components/dark-cta-band';
-import { Footer } from '@/components/footer';
+import dynamic from 'next/dynamic';
+
+// Dynamically import client components for better code splitting
+const HeroSection = dynamic(() => import('@/components/hero-section').then(mod => ({ default: mod.HeroSection })), {
+  loading: () => <div className="h-[500px] animate-pulse" style={{ backgroundColor: 'var(--parchment)' }} />,
+  ssr: true
+});
+
+const HomeContentSection = dynamic(() => import('@/components/home-content-section').then(mod => ({ default: mod.HomeContentSection })), {
+  ssr: true
+});
+
+const NetworkSection = dynamic(() => import('@/components/network-section').then(mod => ({ default: mod.NetworkSection })), {
+  loading: () => <div className="h-[400px] animate-pulse" style={{ backgroundColor: 'var(--parchment-deep)' }} />,
+  ssr: true
+});
+
+const WhyUsSection = dynamic(() => import('@/components/why-us-section').then(mod => ({ default: mod.WhyUsSection })), {
+  loading: () => <div className="h-[300px] animate-pulse" style={{ backgroundColor: 'var(--parchment)' }} />,
+  ssr: true
+});
+
+const DarkCTABand = dynamic(() => import('@/components/dark-cta-band').then(mod => ({ default: mod.DarkCTABand })), {
+  loading: () => <div className="h-[300px] animate-pulse" style={{ backgroundColor: 'var(--ink)' }} />,
+  ssr: true
+});
+
+const Footer = dynamic(() => import('@/components/footer').then(mod => ({ default: mod.Footer })), {
+  ssr: true
+});
 
 export default async function Home() {
   const session = await getServerSession(authOptions);

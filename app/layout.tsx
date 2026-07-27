@@ -9,18 +9,23 @@ const alegreya = Alegreya({
   subsets: ["latin"],
   weight: ["500", "600", "700"],
   style: ["italic"],
+  display: "swap",
+  preload: true,
 });
 
 const workSans = Work_Sans({
   variable: "--font-work-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
+  preload: true,
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-plex-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
