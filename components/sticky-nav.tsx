@@ -26,8 +26,8 @@ export function StickyNav() {
             <img 
               src="/images/logo.png" 
               alt="The Gurukulam School" 
-              className="h-10 w-auto"
-              style={{ height: '40px' }}
+              className="h-10 w-auto object-contain"
+              style={{ height: '40px', width: 'auto' }}
             />
             <div className="flex flex-col">
               <span className="font-bold text-lg leading-tight" style={{ fontFamily: 'var(--font-alegreya)', color: 'var(--ink)' }}>

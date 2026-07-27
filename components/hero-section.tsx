@@ -74,7 +74,6 @@ export function HeroSection() {
                 src="/images/Banner.webp"
                 alt="The Gurukulam School Campus"
                 className="w-full h-auto object-cover"
-                style={{ maxHeight: '500px' }}
               />
               {/* Optional overlay label */}
               <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full text-xs font-medium" 

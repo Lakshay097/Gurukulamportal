@@ -51,9 +51,15 @@ const db = admin.firestore();
  */
 
 // Folder IDs for each document section
-// SOP uses the root folder ID since no subfolders have been created yet
+// These should be the actual folder IDs from Google Drive
 const FOLDER_IDS: Record<string, string> = {
   SOP: "1eW2fw7tYM0Lg3eOTYRZ7Av3CEJfUikm2",
+  CBSERules: "YOUR_CBSERULES_FOLDER_ID_HERE",
+  Draft: "YOUR_DRAFT_FOLDER_ID_HERE",
+  DueDiligence: "YOUR_DUEDILIGENCE_FOLDER_ID_HERE",
+  Agreement: "YOUR_AGREEMENT_FOLDER_ID_HERE",
+  LOI: "YOUR_LOI_FOLDER_ID_HERE",
+  SchoolOption: "YOUR_SCHOOLORGANIZATION_FOLDER_ID_HERE",
 };
 
 async function updateFolderIds() {

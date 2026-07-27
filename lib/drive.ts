@@ -51,8 +51,14 @@ export async function listFilesInFolder(folderId: string): Promise<DriveFile[]> 
     });
 
     return response.data.files || [];
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error listing files in folder:', error);
+    
+    // Enhance error with more context for proxy/network issues
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
+      throw new Error(`Network error accessing Drive: ${error.message}. This may be a proxy or connectivity issue.`);
+    }
+    
     throw error;
   }
 }
@@ -102,8 +108,14 @@ export async function getFolderStructure(folderId: string): Promise<DriveFolder>
       files,
       subfolders,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error getting folder structure:', error);
+    
+    // Enhance error with more context for proxy/network issues
+    if (error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {
+      throw new Error(`Network error accessing Drive: ${error.message}. This may be a proxy or connectivity issue.`);
+    }
+    
     throw error;
   }
 }
