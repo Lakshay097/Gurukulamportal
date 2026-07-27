@@ -31,6 +31,9 @@ const ibmPlexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "The Gurukulam School - Portal",
   description: "Empowering education across India through centralized knowledge management and collaborative excellence.",
+  icons: {
+    icon: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
