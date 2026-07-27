@@ -36,7 +36,7 @@ export default function LoginForm() {
 
           <div className="space-y-4">
             <Button
-              onClick={() => signIn('google', { callbackUrl: '/admin' })}
+              onClick={() => signIn('google', { callbackUrl: '/' })}
               className="w-full h-12 text-base font-medium bg-white text-gray-900 border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all duration-200 shadow-sm"
               size="lg"
             >

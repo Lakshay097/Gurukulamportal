@@ -38,6 +38,9 @@ export default function Navbar() {
             <Link href="/cbse-rules" className="text-gray-700 hover:text-gray-900">
               CBSE Rules
             </Link>
+            <Link href="/my-groups" className="text-gray-700 hover:text-gray-900">
+              My Groups
+            </Link>
             {session && (session as any).userGroupKeys && (session as any).userGroupKeys.includes('admin-central') && (
               <Link href="/admin/users" className="text-gray-700 hover:text-gray-900">
                 Admin
@@ -82,6 +85,9 @@ export default function Navbar() {
             </Link>
             <Link href="/cbse-rules" className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100">
               CBSE Rules
+            </Link>
+            <Link href="/my-groups" className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100">
+              My Groups
             </Link>
             {session && (session as any).userGroupKeys && (session as any).userGroupKeys.includes('admin-central') && (
               <Link href="/admin/users" className="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100">
