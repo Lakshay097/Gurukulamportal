@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
   
   // Allow access to public routes
@@ -51,7 +51,7 @@ export async function proxy(req: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match only protected routes to reduce proxy overhead
+     * Match only protected routes to reduce middleware overhead
      * Exclude: static files, images, favicon, public folder, and known public routes
      */
     '/((?!_next/static|_next/image|favicon.ico|public|images|api/auth|login|schools|documents|cbse-rules|my-groups|unauthorized).*)',
