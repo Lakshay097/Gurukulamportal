@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Icon } from './icon-sprite';
-import Image from 'next/image';
 
 export function StickyNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,13 +23,11 @@ export function StickyNav() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
           {/* Logo */}
           <div className="flex items-center gap-3">
-            <Image 
+            <img 
               src="/images/logo.png" 
               alt="The Gurukulam School" 
-              width={40} 
-              height={40}
               className="h-10 w-auto"
-              priority
+              style={{ height: '40px' }}
             />
             <div className="flex flex-col">
               <span className="font-bold text-lg leading-tight" style={{ fontFamily: 'var(--font-alegreya)', color: 'var(--ink)' }}>
