@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Icon } from './icon-sprite';
+import Image from 'next/image';
 
 export function HeroSection() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -70,11 +71,14 @@ export function HeroSection() {
 
             {/* Hero Banner Image - Replace with your actual image */}
             <div className="relative" style={{ borderRadius: 'var(--r-md)', boxShadow: 'var(--shadow-md)', overflow: 'hidden' }}>
-              <img
+              <Image
                 src="/images/Banner.webp"
                 alt="The Gurukulam School Campus"
+                width={500}
+                height={625}
                 className="w-full h-auto object-cover"
-                style={{ aspectRatio: '4/5', maxHeight: '500px' }}
+                style={{ maxHeight: '500px' }}
+                priority
               />
               {/* Optional overlay label */}
               <div className="absolute bottom-4 left-4 px-3 py-1.5 rounded-full text-xs font-medium" 

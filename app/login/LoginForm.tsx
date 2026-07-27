@@ -3,6 +3,7 @@ import { signIn } from 'next-auth/react';
 import { Button } from '@/components/ui/button';
 import { Globe } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 
 export default function LoginForm() {
   const searchParams = useSearchParams();
@@ -13,10 +14,13 @@ export default function LoginForm() {
       <div className="w-full max-w-md">
         <div className="bg-white rounded-2xl shadow-xl p-8 space-y-8 border border-gray-100">
           <div className="text-center space-y-3">
-            <img 
+            <Image 
               src="/images/logo.png" 
               alt="The Gurukulam School" 
+              width={80}
+              height={80}
               className="w-20 h-20 mx-auto object-contain"
+              priority
             />
             <div>
               <h2 className="text-3xl font-bold text-gray-900 font-alegreya">
