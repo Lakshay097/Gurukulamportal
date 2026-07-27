@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { Icon } from './icon-sprite';
 
 export function StickyNav() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { data: session } = useSession();
 
   const isActive = (path: string) => {
     if (path === '/') {
@@ -52,6 +54,11 @@ export function StickyNav() {
             <a href="/cbse-rules" className="text-sm font-medium transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--ink)', borderBottom: isActive('/cbse-rules') ? '2px solid var(--gold)' : 'none' }}>
               Rules & Compliance
             </a>
+            {session && (session as any).userGroupKeys && (session as any).userGroupKeys.includes('admin-central') && (
+              <a href="/admin/users" className="text-sm font-medium transition-colors hover:text-[var(--gold)]" style={{ color: 'var(--ink)', borderBottom: isActive('/admin') ? '2px solid var(--gold)' : 'none' }}>
+                Admin
+              </a>
+            )}
           </div>
 
           {/* Right Side */}
@@ -59,9 +66,15 @@ export function StickyNav() {
             <button className="p-2 rounded-full hover:bg-[var(--line-soft)] transition-colors" aria-label="Search">
               <Icon name="search" className="w-5 h-5" style={{ color: 'var(--ink)' }} />
             </button>
-            <a href="/login" className="hidden sm:inline-flex btn-outline text-sm">
-              Staff Login
-            </a>
+            {session ? (
+              <a href="/api/auth/signout" className="hidden sm:inline-flex btn-outline text-sm">
+                Sign Out
+              </a>
+            ) : (
+              <a href="/login" className="hidden sm:inline-flex btn-outline text-sm">
+                Staff Login
+              </a>
+            )}
             <button
               className="md:hidden p-2 rounded-full hover:bg-[var(--line-soft)] transition-colors"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -89,9 +102,20 @@ export function StickyNav() {
             <a href="/cbse-rules" className="text-lg font-medium py-2 border-b" style={{ color: 'var(--ink)', borderColor: 'var(--line)', borderBottom: isActive('/cbse-rules') ? '2px solid var(--gold)' : '1px solid var(--line)' }}>
               Rules & Compliance
             </a>
-            <a href="/login" className="btn-gold text-center mt-4">
-              Staff Login
-            </a>
+            {session && (session as any).userGroupKeys && (session as any).userGroupKeys.includes('admin-central') && (
+              <a href="/admin/users" className="text-lg font-medium py-2 border-b" style={{ color: 'var(--ink)', borderColor: 'var(--line)', borderBottom: isActive('/admin') ? '2px solid var(--gold)' : '1px solid var(--line)' }}>
+                Admin
+              </a>
+            )}
+            {session ? (
+              <a href="/api/auth/signout" className="btn-gold text-center mt-4">
+                Sign Out
+              </a>
+            ) : (
+              <a href="/login" className="btn-gold text-center mt-4">
+                Staff Login
+              </a>
+            )}
           </div>
         </div>
       )}

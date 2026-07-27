@@ -54,35 +54,6 @@ export function HeroSection() {
                 <Icon name="arrow-up-right" className="w-4 h-4" />
               </a>
             </div>
-            
-            <div className="flex flex-wrap gap-8 pt-4" style={{ borderTop: '1px solid var(--line)' }}>
-              <div className="flex items-center gap-4">
-                <div className="text-3xl font-bold" style={{ fontFamily: 'var(--font-alegreya)', color: 'var(--ink)' }}>
-                  12+
-                </div>
-                <div className="text-xs uppercase tracking-wider" style={{ fontFamily: 'var(--font-ibm-plex-mono)', color: 'var(--ink-faint)' }}>
-                  School Branches
-                </div>
-              </div>
-              <div className="hidden sm:block w-px" style={{ backgroundColor: 'var(--line)' }}></div>
-              <div className="flex items-center gap-4">
-                <div className="text-3xl font-bold" style={{ fontFamily: 'var(--font-alegreya)', color: 'var(--ink)' }}>
-                  5000+
-                </div>
-                <div className="text-xs uppercase tracking-wider" style={{ fontFamily: 'var(--font-ibm-plex-mono)', color: 'var(--ink-faint)' }}>
-                  Students
-                </div>
-              </div>
-              <div className="hidden sm:block w-px" style={{ backgroundColor: 'var(--line)' }}></div>
-              <div className="flex items-center gap-4">
-                <div className="text-3xl font-bold" style={{ fontFamily: 'var(--font-alegreya)', color: 'var(--ink)' }}>
-                  300+
-                </div>
-                <div className="text-xs uppercase tracking-wider" style={{ fontFamily: 'var(--font-ibm-plex-mono)', color: 'var(--ink-faint)' }}>
-                  Educators
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Right Column - Hero Banner Image */}

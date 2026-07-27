@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ['googleapis', 'google-auth-library'],
+  turbopack: {},
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
