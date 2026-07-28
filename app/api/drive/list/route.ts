@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const userGroupKeys = (session as any)?.userGroupKeys || [];
+    const accessToken = (session as any)?.accessToken;
 
     const searchParams = request.nextUrl.searchParams;
     const folderId = searchParams.get('folderId');
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
     // If the folder is the root folder, return a flat list of files instead of folder structure
     // The root folder is an internal storage concept, not user-facing
     if (folderId === ROOT_DRIVE_FOLDER_ID) {
-      const files = await listFilesInFolder(folderId);
+      const files = await listFilesInFolder(folderId, accessToken);
       return NextResponse.json({
         folderStructure: {
           id: folderId,
@@ -45,7 +46,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const folderStructure = await getFolderStructure(folderId);
+    const folderStructure = await getFolderStructure(folderId, accessToken);
     return NextResponse.json({ folderStructure, unreadable: false });
   } catch (error: any) {
     console.error('Error in drive list API:', error);

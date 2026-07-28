@@ -1,0 +1,9 @@
+:{$PORT}
+
+@auth {
+    header Authorization {env.GOTENBERG_AUTH_TOKEN}
+}
+
+route @auth {
+    reverse_proxy {$GOTENBERG_INTERNAL_URL}
+}

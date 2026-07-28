@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: gotenberg-proxy
+    env: docker
+    plan: free
+    envVars:
+      - key: GOTENBERG_AUTH_TOKEN
+        sync: false
+      - key: GOTENBERG_INTERNAL_URL
+        value: gotenberg:3000
+      - key: PORT
+        value: 10000

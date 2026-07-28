@@ -87,30 +87,28 @@ export default async function DocumentsPage() {
             </p>
           </div>
 
-          <div className="space-y-4 reveal">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal">
             {sectionsWithFolders.length === 0 ? (
-              <EmptyState variant="coming-soon" title="Documents coming soon" description="Document folders will be available here soon once they are configured in Google Drive." />
+              <div className="col-span-full">
+                <EmptyState variant="coming-soon" title="Documents coming soon" description="Document folders will be available here soon once they are configured in Google Drive." />
+              </div>
             ) : (
               Object.entries(sectionsByType).map(([type, typeSections]) => (
-                <div key={type}>
-                  <div className="space-y-4">
-                    {typeSections.map((section) => (
-                      <AccessGate
-                        key={section.id}
-                        resourceType={RESOURCE_TYPES.DOCUMENT_SECTION}
-                        resourceId={section.id}
-                        userGroupKeys={userGroupKeys}
-                      >
-                        <DocumentRow
-                          folderId={section.driveFolderId || null}
-                          resourceType={RESOURCE_TYPES.DOCUMENT_SECTION}
-                          resourceId={section.id}
-                          documentType={type.toLowerCase()}
-                        />
-                      </AccessGate>
-                    ))}
-                  </div>
-                </div>
+                typeSections.map((section) => (
+                  <AccessGate
+                    key={section.id}
+                    resourceType={RESOURCE_TYPES.DOCUMENT_SECTION}
+                    resourceId={section.id}
+                    userGroupKeys={userGroupKeys}
+                  >
+                    <DocumentRow
+                      folderId={section.driveFolderId || null}
+                      resourceType={RESOURCE_TYPES.DOCUMENT_SECTION}
+                      resourceId={section.id}
+                      documentType={type.toLowerCase()}
+                    />
+                  </AccessGate>
+                ))
               ))
             )}
           </div>

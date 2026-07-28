@@ -6,5 +6,19 @@ service cloud.firestore {
       allow read: if true;
       allow write: if false;
     }
+    
+    // Server-only collections for share links and page cache
+    match /shareLinks/{token} {
+      allow read, write: if false; // server-only, via Admin SDK
+    }
+    match /shareLinkAccessLog/{logId} {
+      allow read, write: if false;
+    }
+    match /page_cache_meta/{key} {
+      allow read, write: if false;
+    }
+    match /externalAccessTokens/{token} {
+      allow read, write: if false; // server-only, via Admin SDK
+    }
   }
 }

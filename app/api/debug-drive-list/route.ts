@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     const session = await getServerSession(authOptions);
     result.session = session ? { user: session.user } : null;
     result.userGroupKeys = (session as any)?.userGroupKeys || [];
+    const accessToken = (session as any)?.accessToken;
 
     const searchParams = request.nextUrl.searchParams;
     result.folderId = searchParams.get('folderId') || '1eW2fw7tYM0Lg3eOTYRZ7Av3CEJfUikm2';
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
     result.hasAccess = await canAccess(result.userGroupKeys || [], result.resourceType, result.resourceId);
 
     if (result.hasAccess) {
-      result.folderStructure = await getFolderStructure(result.folderId);
+      result.folderStructure = await getFolderStructure(result.folderId, accessToken);
     }
 
   } catch (error: any) {

@@ -82,7 +82,7 @@ export default function DocumentEmbed({ fileId, resourceType, resourceId }: Docu
       
       <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity bg-black/20">
         <a
-          href={`https://drive.google.com/file/d/${fileId}/preview`}
+          href={`/view/${fileId}?resourceType=${resourceType}&resourceId=${resourceId}`}
           target="_blank"
           rel="noopener noreferrer"
           className="px-3 py-1.5 bg-white rounded-lg text-sm font-medium text-gray-900 hover:bg-gray-50 shadow-sm"

@@ -16,3 +16,5 @@ export const supabase = createClient(supabaseUrl, supabaseServiceRoleKey, {
 });
 
 export const THUMBNAIL_BUCKET = 'document-thumbnails';
+export const PDF_CACHE_BUCKET = 'drive-pdf-cache';
+export const PAGE_CACHE_BUCKET = 'drive-pdf-cache';

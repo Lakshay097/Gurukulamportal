@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { canAccess } from '@/lib/permissions';
-import { getThumbnailUrl } from '@/lib/drive';
-import { getCachedThumbnailUrl, cacheThumbnail } from '@/lib/storage';
+import { getDriveClient } from '@/lib/drive';
 
 export async function GET(request: NextRequest) {
   try {
@@ -24,26 +23,58 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    // Check if we have a cached thumbnail in Supabase Storage
-    const cachedUrl = await getCachedThumbnailUrl(fileId);
-    if (cachedUrl) {
-      return NextResponse.redirect(cachedUrl);
+    // Use service account to fetch thumbnail with authentication
+    const drive = getDriveClient();
+    
+    // Get file metadata to check if it's a Google Docs file
+    const file = await drive.files.get({
+      fileId,
+      fields: 'mimeType,thumbnailLink',
+    });
+
+    // For Google Docs files, we can't get thumbnails via API, return 404
+    if (file.data.mimeType?.startsWith('application/vnd.google-apps')) {
+      return NextResponse.json({ error: 'No thumbnail available for Google Docs files' }, { status: 404 });
     }
 
-    // No cached thumbnail - fetch from Drive and cache it
-    const driveThumbnailUrl = await getThumbnailUrl(fileId);
-    if (driveThumbnailUrl) {
-      // Download and cache the thumbnail in Supabase Storage
-      const cachedSupabaseUrl = await cacheThumbnail(fileId, driveThumbnailUrl);
-      if (cachedSupabaseUrl) {
-        return NextResponse.redirect(cachedSupabaseUrl);
+    const thumbnailLink = file.data.thumbnailLink;
+    if (!thumbnailLink) {
+      return NextResponse.json({ error: 'No thumbnail available' }, { status: 404 });
+    }
+
+    // Fetch the thumbnail image using service account authentication
+    // We need to use the Drive API with alt=media to get authenticated access
+    try {
+      const response = await drive.files.get({
+        fileId,
+        alt: 'media',
+      }, { responseType: 'arraybuffer' });
+
+      const imageBuffer = Buffer.from(response.data as ArrayBuffer);
+      
+      return new NextResponse(imageBuffer, {
+        headers: {
+          'Content-Type': file.data.mimeType || 'image/jpeg',
+          'Cache-Control': 'public, max-age=3600',
+          'X-Content-Type-Options': 'nosniff',
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching file content for thumbnail:', error);
+      // Fallback: try to fetch the thumbnail link directly
+      const thumbnailResponse = await fetch(thumbnailLink);
+      if (thumbnailResponse.ok) {
+        const imageBuffer = await thumbnailResponse.arrayBuffer();
+        return new NextResponse(Buffer.from(imageBuffer), {
+          headers: {
+            'Content-Type': 'image/jpeg',
+            'Cache-Control': 'public, max-age=3600',
+            'X-Content-Type-Options': 'nosniff',
+          },
+        });
       }
-      // Fallback to Drive URL if caching fails
-      return NextResponse.redirect(driveThumbnailUrl);
+      throw error;
     }
-
-    // No thumbnail available - return 404 so the component shows fallback icon
-    return NextResponse.json({ error: 'No thumbnail available' }, { status: 404 });
   } catch (error) {
     console.error('Error fetching thumbnail:', error);
     return NextResponse.json({ error: 'Failed to fetch thumbnail' }, { status: 500 });

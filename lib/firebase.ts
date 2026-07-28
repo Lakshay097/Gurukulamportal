@@ -42,6 +42,7 @@ if (typeof window === 'undefined') {
         adminApp = admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
           projectId: firebaseConfig.projectId,
+          storageBucket: firebaseConfig.storageBucket,
         });
       } else {
         adminApp = admin.apps[0]!;

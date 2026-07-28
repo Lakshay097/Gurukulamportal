@@ -17,6 +17,11 @@ export function StickyNav() {
     return pathname.startsWith(path);
   };
 
+  // Hide nav when viewing documents
+  if (pathname.startsWith('/view/')) {
+    return null;
+  }
+
   return (
     <>
       <nav className="sticky top-0 z-50 h-[78px] backdrop-blur-[10px] border-b" style={{ backgroundColor: 'rgba(251, 246, 236, 0.9)', borderColor: 'var(--line)' }}>

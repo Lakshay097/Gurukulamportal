@@ -8,6 +8,11 @@ export const authOptions: AuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: 'openid email profile https://www.googleapis.com/auth/drive.readonly',
+        },
+      },
     }),
   ],
   session: {
@@ -15,10 +20,16 @@ export const authOptions: AuthOptions = {
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   callbacks: {
-    async jwt({ token, user, trigger, session }: any) {
+    async jwt({ token, user, account, trigger, session }: any) {
       // Add userGroupKeys to token on initial sign in
       if (user) {
         token.userGroupKeys = user.userGroupKeys || [];
+      }
+      
+      // Store Google access token for Drive API access
+      if (account) {
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
       }
       
       // Update token when session is updated
@@ -106,6 +117,15 @@ export const authOptions: AuthOptions = {
       } else {
         (session as any).userGroupKeys = [];
       }
+      
+      // Pass Google access token from JWT token to session
+      if (token?.accessToken) {
+        (session as any).accessToken = token.accessToken;
+      }
+      if (token?.refreshToken) {
+        (session as any).refreshToken = token.refreshToken;
+      }
+      
       return session;
     },
   },

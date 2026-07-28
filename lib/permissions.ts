@@ -10,7 +10,10 @@ export async function canAccess(
   console.log('[canAccess] resourceType:', resourceType);
   console.log('[canAccess] resourceId:', resourceId);
   
-  if (userGroupKeys.includes('admin-central')) return true;
+  if (userGroupKeys.includes('admin-central')) {
+    console.log('[canAccess] Access granted: admin-central');
+    return true;
+  }
 
   if (useAdminSDK && adminDb) {
     // Use Admin SDK
@@ -20,10 +23,14 @@ export async function canAccess(
       .where('resourceId', '==', resourceId)
       .get();
 
-    return snapshot.docs.some((doc) => {
+    console.log('[canAccess] Permission rules found:', snapshot.docs.length);
+    const hasAccess = snapshot.docs.some((doc) => {
       const rule = doc.data();
+      console.log('[canAccess] Checking rule:', rule);
       return userGroupKeys.includes(rule.groupKey) && rule.accessLevel !== 'none';
     });
+    console.log('[canAccess] Access result:', hasAccess);
+    return hasAccess;
   } else {
     // Use Client SDK
     const rulesQuery = query(
@@ -33,13 +40,17 @@ export async function canAccess(
     );
 
     const rulesSnapshot = await getDocs(rulesQuery);
+    console.log('[canAccess] Permission rules found:', rulesSnapshot.docs.length);
     
-    return rulesSnapshot.docs.some(
+    const hasAccess = rulesSnapshot.docs.some(
       (doc) => {
         const rule = doc.data();
+        console.log('[canAccess] Checking rule:', rule);
         return userGroupKeys.includes(rule.groupKey) && rule.accessLevel !== 'none';
       }
     );
+    console.log('[canAccess] Access result:', hasAccess);
+    return hasAccess;
   }
 }
 

@@ -148,9 +148,11 @@ export default async function DocumentTypePathPage({
             </p>
           </div>
 
-          <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {sections.length === 0 ? (
-              <EmptyState variant="coming-soon" title={`${label} coming soon`} description="Documents will be available here soon." />
+              <div className="col-span-full">
+                <EmptyState variant="coming-soon" title={`${label} coming soon`} description="Documents will be available here soon." />
+              </div>
             ) : (
               sections.map((section) => (
                 <AccessGate
@@ -188,6 +190,7 @@ export default async function DocumentTypePathPage({
   let breadcrumbNames: string[] = [];
   let breadcrumbSlugs: string[] = [];
   let sectionId: string | null = null;
+  const accessToken = (session as any)?.accessToken;
 
   for (const section of sections) {
     if (!section.driveFolderId) continue;
@@ -195,7 +198,7 @@ export default async function DocumentTypePathPage({
     console.log('[DocumentTypePathPage] Checking section:', section.id, 'with drive folder:', section.driveFolderId);
     
     try {
-      const folderStructure = await getFolderStructure(section.driveFolderId);
+      const folderStructure = await getFolderStructure(section.driveFolderId, accessToken);
       
       console.log('[DocumentTypePathPage] Folder structure root ID:', folderStructure.id);
       console.log('[DocumentTypePathPage] Folder structure root name:', folderStructure.name);

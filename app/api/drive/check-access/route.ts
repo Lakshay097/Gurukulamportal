@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     const userGroupKeys = (session as any)?.userGroupKeys || [];
+    const accessToken = (session as any)?.accessToken;
 
     const searchParams = request.nextUrl.searchParams;
     const folderId = searchParams.get('folderId');
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    const isAccessible = await isFolderAccessible(folderId);
+    const isAccessible = await isFolderAccessible(folderId, accessToken);
     return NextResponse.json({ accessible: isAccessible });
   } catch (error: any) {
     console.error('Error in drive check-access API:', error);

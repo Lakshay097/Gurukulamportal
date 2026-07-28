@@ -50,9 +50,8 @@ export default function DocumentCard({ file, resourceType, resourceId }: Documen
 
   const shortLabel = getShortLabel(file.name);
   const handleCardClick = () => {
-    if (file.webViewLink) {
-      window.open(file.webViewLink, '_blank', 'noopener,noreferrer');
-    }
+    // Open in-app viewer using server-side proxy
+    window.open(`/view/${file.id}?resourceType=${resourceType}&resourceId=${resourceId}`, '_blank');
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

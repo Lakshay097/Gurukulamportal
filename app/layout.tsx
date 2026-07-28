@@ -3,6 +3,7 @@ import { Alegreya, Work_Sans, IBM_Plex_Mono } from "next/font/google";
 import "../styles/globals.css";
 import { StickyNav } from "@/components/sticky-nav";
 import Providers from "@/components/providers";
+import "@/lib/startup-checks";
 
 const alegreya = Alegreya({
   variable: "--font-alegreya",
