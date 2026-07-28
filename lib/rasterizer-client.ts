@@ -1,6 +1,3 @@
-import FormData from "form-data";
-import fetch from "node-fetch";
-
 const RASTERIZER_URL = process.env.PDF_RASTERIZER_URL;
 
 export async function rasterizePdfPage(
@@ -13,7 +10,7 @@ export async function rasterizePdfPage(
   }
 
   const formData = new FormData();
-  formData.append("pdf", pdfBuffer, "input.pdf");
+  formData.append("pdf", new Blob([new Uint8Array(pdfBuffer)]), "input.pdf");
   formData.append("pageNum", String(pageNum));
   formData.append("dpi", String(opts.dpi ?? 150));
   formData.append("format", opts.format ?? "jpeg");
@@ -28,8 +25,8 @@ export async function rasterizePdfPage(
     throw new Error(`Rasterizer service error: ${response.status} - ${errorText}`);
   }
 
-  const buffer = await response.buffer();
-  return buffer;
+  const arrayBuffer = await response.arrayBuffer();
+  return Buffer.from(arrayBuffer);
 }
 
 export async function getPdfPageCount(pdfBuffer: Buffer): Promise<number> {
@@ -38,7 +35,7 @@ export async function getPdfPageCount(pdfBuffer: Buffer): Promise<number> {
   }
 
   const formData = new FormData();
-  formData.append("pdf", pdfBuffer, "input.pdf");
+  formData.append("pdf", new Blob([new Uint8Array(pdfBuffer)]), "input.pdf");
 
   const response = await fetch(`${RASTERIZER_URL}/page-count`, {
     method: "POST",
