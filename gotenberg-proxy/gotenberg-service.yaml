@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: gotenberg
+    env: docker
+    image: gotenberg/gotenberg:latest
+    plan: free
+    envVars:
+      - key: GOTENBERG_WEBHOOK_ALLOW_LIST
+        value: https://six-coats-strive.loca.lt
+    dockerCommand: gotenberg --webhook-allow-list={$GOTENBERG_WEBHOOK_ALLOW_LIST}
