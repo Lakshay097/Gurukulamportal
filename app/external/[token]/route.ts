@@ -4,20 +4,21 @@ import { enforceRateLimit } from "@/lib/rate-limit-response";
 
 const COOKIE_NAME = "external_access_token";
 
-export async function GET(req: NextRequest, { params }: { params: { token: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   // 20 attempts/minute per IP — generous for real use, useless for brute-forcing
   const { blocked } = enforceRateLimit(req, "external-token-exchange", { limit: 20, windowSeconds: 60 });
   if (blocked) return blocked;
 
-  const validation = await validateExternalToken(params.token);
+  const { token } = await params;
+  const validation = await validateExternalToken(token);
   if (!validation.ok) {
     return NextResponse.redirect(new URL(`/unauthorized?reason=${validation.reason}`, req.url));
   }
 
-  await touchExternalToken(params.token);
+  await touchExternalToken(token);
 
   const response = NextResponse.redirect(new URL("/documents", req.url));
-  response.cookies.set(COOKIE_NAME, params.token, {
+  response.cookies.set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: true,
     sameSite: "lax",

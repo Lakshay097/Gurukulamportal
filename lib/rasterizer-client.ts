@@ -60,10 +60,15 @@ export async function checkRasterizerHealth(): Promise<boolean> {
   }
 
   try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
     const response = await fetch(`${RASTERIZER_URL}/health`, {
       method: "GET",
-      timeout: 5000,
+      signal: controller.signal,
     });
+
+    clearTimeout(timeout);
     return response.ok;
   } catch {
     return false;
