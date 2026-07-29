@@ -24,14 +24,14 @@ export default function LoginForm() {
                 Welcome to Gurukulam
               </h2>
               <p className="mt-2 text-gray-600 text-sm">
-                Sign in with your Google Workspace account to access the portal
+                Sign in with your Google Workspace or Gmail account to access the portal
               </p>
             </div>
           </div>
 
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-800">
-              {error === 'AccessDenied' && 'Access denied. Please use your school email address.'}
+              {error === 'AccessDenied' && 'Access denied. Please use your school or Gmail email address.'}
               {error === 'Configuration' && 'There is a configuration error. Please contact support.'}
               {!error && 'An error occurred during sign in. Please try again.'}
             </div>

@@ -4,8 +4,23 @@ import { getToken } from "next-auth/jwt";
 const ADMIN_PREFIXES = ["/admin", "/api/admin"];
 const ALWAYS_PUBLIC = ["/login", "/api/auth", "/api/debug", "/unauthorized", "/external", "/view"];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Skip proxy for static assets and Next.js internals
+  if (pathname.startsWith('/_next') || pathname.startsWith('/images') || pathname.startsWith('/favicon.ico') || pathname.startsWith('/static')) {
+    return NextResponse.next();
+  }
+
+  // Skip proxy for public assets
+  if (pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|avif)$/)) {
+    return NextResponse.next();
+  }
+
+  // Skip proxy for all API routes (let them handle their own auth)
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next();
+  }
 
   if (ALWAYS_PUBLIC.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
@@ -28,5 +43,15 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * - images (static images)
+     * - api (API routes)
+     */
+    "/((?!_next/static|_next/image|favicon.ico|images|api).*)",
+  ],
 };

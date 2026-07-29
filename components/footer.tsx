@@ -123,6 +123,16 @@ export function Footer() {
           <p className="text-xs" style={{ color: 'rgba(251, 246, 236, 0.5)' }}>
             © 2024 The Gurukulam School. All rights reserved.
           </p>
+          <div className="flex flex-wrap gap-4">
+            <a href="/privacy-policy" className="text-xs transition-colors hover:text-[var(--gold)]" 
+               style={{ color: 'rgba(251, 246, 236, 0.5)' }}>
+              Privacy Policy
+            </a>
+            <a href="/terms-of-service" className="text-xs transition-colors hover:text-[var(--gold)]" 
+               style={{ color: 'rgba(251, 246, 236, 0.5)' }}>
+              Terms of Service
+            </a>
+          </div>
           <p className="text-xs" style={{ color: 'rgba(251, 246, 236, 0.5)' }}>
             Empowering Minds, Shaping Futures
           </p>

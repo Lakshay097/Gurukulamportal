@@ -19,6 +19,8 @@ export const authOptions: AuthOptions = {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === 'development',
   callbacks: {
     async jwt({ token, user, account, trigger, session }: any) {
       // Add userGroupKeys to token on initial sign in
@@ -49,7 +51,10 @@ export const authOptions: AuthOptions = {
       console.log('[Auth signIn] Allowed domain:', allowedDomain);
       console.log('[Auth signIn] Email ends with domain:', email?.endsWith(`@${allowedDomain}`));
       
-      if (!email || !allowedDomain || !email.endsWith(`@${allowedDomain}`)) {
+      // Allow both custom domain and gmail.com addresses
+      const isValidDomain = email?.endsWith(`@${allowedDomain}`) || email?.endsWith('@gmail.com');
+      
+      if (!email || !isValidDomain) {
         console.log('[Auth signIn] Sign in rejected');
         return false;
       }
