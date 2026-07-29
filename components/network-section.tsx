@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Icon } from './icon-sprite';
+import { SCHOOL_WEBSITES } from '@/lib/constants';
 
 const locations = [
   {
@@ -70,7 +71,9 @@ export function NetworkSection() {
           {locations.map((location, index) => (
             <a
               key={index}
-              href={`/schools/${location.slug}`}
+              href={SCHOOL_WEBSITES[location.slug] || `/schools/${location.slug}`}
+              target={SCHOOL_WEBSITES[location.slug] ? '_blank' : '_self'}
+              rel={SCHOOL_WEBSITES[location.slug] ? 'noopener noreferrer' : undefined}
               className="group reveal"
               style={{ transitionDelay: `${index * 0.1}s` }}
             >

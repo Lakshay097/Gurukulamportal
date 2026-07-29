@@ -49,7 +49,7 @@ export function HeroSection() {
                 Explore Schools
                 <Icon name="arrow-right" className="w-4 h-4" />
               </a>
-              <a href="/documents" className="btn-outline">
+              <a href="https://www.thegurukulam.school/" target="_blank" rel="noopener noreferrer" className="btn-outline">
                 Learn More
                 <Icon name="arrow-up-right" className="w-4 h-4" />
               </a>

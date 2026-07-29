@@ -111,6 +111,22 @@ export const SCHOOL_SLUGS = [
   'indore',
 ] as const;
 
+// School website URLs
+export const SCHOOL_WEBSITES: Record<string, string> = {
+  'gwalior': 'https://www.thegurukulam.school/gwalior/jhansi-road-sithouli',
+  'motihari': 'https://www.thegurukulam.school/motihari/chandrahiya',
+  'jaipur': 'https://www.thegurukulam.school/jaipur/suncity-township',
+  'lucknow': 'https://www.thegurukulam.school/lucknow/aliganj',
+  'suratgarh': 'https://www.thegurukulam.school/suratgarh/badopal-rawatsar',
+  'ranchi': 'https://www.thegurukulam.school/ranchi/tupudana',
+  'bhopal': 'https://www.thegurukulam.school/bhopal/narmadapuram-road',
+  'faridabad': 'https://www.thegurukulam.school/faridabad/sector-89',
+  'muzaffarpur': 'https://www.thegurukulam.school/muzaffarpur/jhaphan',
+  'indore': 'https://www.thegurukulam.school/indore/khandwa-road',
+  'varanasi': 'https://www.thegurukulam.school/varanasi/mughalsarai-bypass',
+  'gurugram': 'https://www.thegurukulam.school/gurugram/sector-57',
+} as const;
+
 // Root Drive folder ID - should be set in environment variables
 export const ROOT_DRIVE_FOLDER_ID = process.env.ROOT_DRIVE_FOLDER_ID || '';
 

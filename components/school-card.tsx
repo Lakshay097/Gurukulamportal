@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Building2, MapPin } from 'lucide-react';
+import { SCHOOL_WEBSITES } from '@/lib/constants';
 
 interface SchoolCardProps {
   slug: string;
@@ -30,7 +31,7 @@ export default function SchoolCard({
   };
 
   return (
-    <Link href={`/schools/${slug}`}>
+    <Link href={SCHOOL_WEBSITES[slug] || `/schools/${slug}`} target={SCHOOL_WEBSITES[slug] ? '_blank' : '_self'} rel={SCHOOL_WEBSITES[slug] ? 'noopener noreferrer' : undefined}>
       <div className="group overflow-hidden rounded-lg border bg-white shadow-sm transition-all hover:shadow-md">
         {/* Hero Image (16:9 aspect ratio) */}
         <div className="relative aspect-video w-full bg-gray-100">

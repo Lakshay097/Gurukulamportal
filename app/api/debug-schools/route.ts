@@ -16,7 +16,14 @@ export async function GET() {
     
     return NextResponse.json({ 
       count: schools.length,
-      schools: schools.map(s => ({ id: s.id, slug: s.slug, name: s.name }))
+      schools: schools.map(s => ({ 
+        id: s.id, 
+        slug: s.slug, 
+        name: s.name,
+        city: s.city,
+        status: s.status,
+        heroImageUrl: s.heroImageUrl
+      }))
     });
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });

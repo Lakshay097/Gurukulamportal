@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { canAccess } from '@/lib/permissions';
 import { getDriveClient } from '@/lib/drive';
+import { getCachedThumbnailUrl, cacheThumbnail } from '@/lib/storage';
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,6 +22,12 @@ export async function GET(request: NextRequest) {
     const hasAccess = await canAccess(userGroupKeys, resourceType, resourceId);
     if (!hasAccess) {
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    // Check cache first
+    const cachedUrl = await getCachedThumbnailUrl(fileId);
+    if (cachedUrl) {
+      return NextResponse.redirect(cachedUrl);
     }
 
     // Use service account to fetch thumbnail with authentication
@@ -52,6 +59,9 @@ export async function GET(request: NextRequest) {
 
       const imageBuffer = Buffer.from(response.data as ArrayBuffer);
       
+      // Cache the thumbnail for future requests
+      cacheThumbnail(fileId, thumbnailLink).catch(() => {});
+      
       return new NextResponse(imageBuffer, {
         headers: {
           'Content-Type': file.data.mimeType || 'image/jpeg',
@@ -65,6 +75,10 @@ export async function GET(request: NextRequest) {
       const thumbnailResponse = await fetch(thumbnailLink);
       if (thumbnailResponse.ok) {
         const imageBuffer = await thumbnailResponse.arrayBuffer();
+        
+        // Cache the thumbnail for future requests
+        cacheThumbnail(fileId, thumbnailLink).catch(() => {});
+        
         return new NextResponse(Buffer.from(imageBuffer), {
           headers: {
             'Content-Type': 'image/jpeg',

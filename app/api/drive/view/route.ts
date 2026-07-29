@@ -2,9 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { canAccess } from '@/lib/permissions';
-import { getDriveClient, downloadFileBytes, isConvertibleOfficeMimeType } from '@/lib/drive';
-import { convertOfficeBufferToPdf } from '@/lib/gotenberg';
-import { getCachedPdf, setCachedPdf } from '@/lib/pdf-cache';
+import { getDriveClient, isConvertibleOfficeMimeType } from '@/lib/drive';
+import { getCachedPdf } from '@/lib/pdf-cache';
 
 export async function GET(request: NextRequest) {
   try {
@@ -76,47 +75,77 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // For Office files (DOCX, XLSX, PPTX, DOC, XLS, PPT), convert to PDF using Gotenberg
-    // and serve through our own proxy — never expose a drive.google.com URL to the client.
+    // For Office files (DOCX, XLSX, PPTX, DOC, XLS, PPT), serve cached PDF
     if (isConvertibleOfficeMimeType(mimeType)) {
-      console.log('[Drive View API] Office file detected, converting to PDF');
+      console.log('[Drive View API] Office file detected, checking cache');
 
-      let pdfBuffer = await getCachedPdf(fileId, modifiedTime);
-
+      const pdfBuffer = await getCachedPdf(fileId, modifiedTime);
       if (!pdfBuffer) {
-        console.log('[Drive View API] Cache miss, performing live conversion');
-        try {
-          console.log('[Drive View API] Step 1: Downloading file bytes from Drive');
-          const rawBytes = await downloadFileBytes(fileId, drive);
-          console.log('[Drive View API] Step 1 complete: Downloaded', rawBytes.length, 'bytes');
-          
-          console.log('[Drive View API] Step 2: Converting to PDF via LibreOffice');
-          pdfBuffer = await convertOfficeBufferToPdf(rawBytes, fileName);
-          console.log('[Drive View API] Step 2 complete: Conversion successful, PDF length:', pdfBuffer.length);
-          
-          // Fire-and-forget cache write — don't block the response on it.
-          setCachedPdf(fileId, modifiedTime, pdfBuffer).catch(() => {});
-        } catch (err) {
-          console.error('Office file conversion failed', {
-            fileId,
-            mimeType,
-            error: err instanceof Error ? err.message : err,
-            stack: err instanceof Error ? err.stack : undefined,
-          });
-
-          return NextResponse.json(
-            {
-              error: 'preview_unavailable',
-              message: 'This document could not be converted for preview. Please try again shortly.',
-            },
-            { status: 502 }
-          );
-        }
-      } else {
-        console.log('[Drive View API] Cache hit, serving cached PDF');
+        console.error('[Drive View API] PDF not cached for file:', fileId);
+        // Return HTML error instead of JSON so iframe can display it properly
+        const htmlError = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Document Not Ready</title>
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+                background: #f9fafb;
+              }
+              .error-container {
+                text-align: center;
+                padding: 2rem;
+                max-width: 500px;
+              }
+              .error-icon {
+                font-size: 3rem;
+                margin-bottom: 1rem;
+              }
+              h1 {
+                color: #1f2937;
+                margin-bottom: 0.5rem;
+              }
+              p {
+                color: #6b7280;
+                line-height: 1.5;
+              }
+              .button {
+                display: inline-block;
+                margin-top: 1.5rem;
+                padding: 0.5rem 1rem;
+                background: #3b82f6;
+                color: white;
+                text-decoration: none;
+                border-radius: 0.375rem;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="error-container">
+              <div class="error-icon">📄</div>
+              <h1>Document Not Ready</h1>
+              <p>This document is being prepared for viewing. Please try again in a few minutes or contact an administrator to pre-convert documents.</p>
+              <a href="javascript:window.parent.postMessage({type:'close'}, '*')" class="button">Close</a>
+            </div>
+          </body>
+          </html>
+        `;
+        return new NextResponse(htmlError, {
+          status: 502,
+          headers: {
+            'Content-Type': 'text/html',
+          },
+        });
       }
 
       const pdfFileName = fileName.replace(/\.\w+$/, '') + '.pdf';
+      console.log('[Drive View API] Serving cached PDF:', pdfFileName);
 
       return new NextResponse(new Uint8Array(pdfBuffer), {
         headers: {

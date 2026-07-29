@@ -14,7 +14,7 @@ export async function middleware(req: NextRequest) {
   const externalCookie = req.cookies.get("external_access_token")?.value;
 
   if (isAdminRoute) {
-    if (!nextAuthToken || !(nextAuthToken.groupKeys as string[] | undefined)?.includes("admin-central")) {
+    if (!nextAuthToken || !(nextAuthToken.userGroupKeys as string[] | undefined)?.includes("admin-central")) {
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
     return NextResponse.next();

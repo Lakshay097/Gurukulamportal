@@ -41,6 +41,8 @@ export default function AdminSchoolsPage() {
   const [loading, setLoading] = useState(true);
   const [editingSchool, setEditingSchool] = useState<string | null>(null);
   const [editData, setEditData] = useState<Partial<School>>({});
+  const [preconverting, setPreconverting] = useState(false);
+  const [preconvertResult, setPreconvertResult] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -99,13 +101,70 @@ export default function AdminSchoolsPage() {
     setEditData({ ...editData, facilities: newFacilities });
   };
 
+  const handlePreconvert = async () => {
+    setPreconverting(true);
+    setPreconvertResult(null);
+    try {
+      console.log('Starting pre-conversion...');
+      const response = await fetch('/api/admin/preconvert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      console.log('Pre-conversion response status:', response.status);
+      const data = await response.json();
+      console.log('Pre-conversion result:', data);
+      setPreconvertResult(data);
+    } catch (error) {
+      console.error('Pre-conversion failed:', error);
+      setPreconvertResult({ ok: false, error: 'Pre-conversion failed: ' + String(error) });
+    } finally {
+      setPreconverting(false);
+    }
+  };
+
   if (loading) {
     return <div className="p-8">Loading...</div>;
   }
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold mb-8">Schools</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Schools</h1>
+        <Button onClick={handlePreconvert} disabled={preconverting}>
+          {preconverting ? 'Pre-converting...' : 'Pre-convert All Documents'}
+        </Button>
+      </div>
+
+      {preconvertResult && (
+        <div className={`mb-6 p-4 rounded ${preconvertResult.ok ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+          <h3 className={`font-semibold mb-2 ${preconvertResult.ok ? 'text-green-800' : 'text-red-800'}`}>
+            {preconvertResult.ok ? 'Pre-conversion Complete' : 'Pre-conversion Failed'}
+          </h3>
+          {preconvertResult.ok && preconvertResult.result && (
+            <div className="text-sm text-gray-700">
+              <p>Total: {preconvertResult.result.total}</p>
+              <p>Converted: {preconvertResult.result.converted}</p>
+              <p>Skipped: {preconvertResult.result.skipped}</p>
+              <p>Failed: {preconvertResult.result.failed}</p>
+              {preconvertResult.result.errors.length > 0 && (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-red-600">View Errors ({preconvertResult.result.errors.length})</summary>
+                  <ul className="mt-2 space-y-1">
+                    {preconvertResult.result.errors.map((err: any, idx: number) => (
+                      <li key={idx} className="text-xs">
+                        {err.name}: {err.error}
+                      </li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+            </div>
+          )}
+          {!preconvertResult.ok && (
+            <p className="text-sm text-red-700">{preconvertResult.error}</p>
+          )}
+        </div>
+      )}
 
       <div className="space-y-8">
         {schools.map((school) => (

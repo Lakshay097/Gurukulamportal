@@ -1,24 +1,55 @@
-import { adminDb, useAdminSDK, db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+'use client';
+
+import { useState, useEffect } from 'react';
 import SchoolCard from '@/components/school-card';
 import { Search } from 'lucide-react';
 
-async function getSchools() {
-  if (useAdminSDK && adminDb) {
-    // Use Admin SDK
-    const snapshot = await adminDb.collection('schools').get();
-    console.log(`Found ${snapshot.size} schools in database`);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  } else {
-    // Use Client SDK
-    const schoolsSnapshot = await getDocs(collection(db, 'schools'));
-    console.log(`Found ${schoolsSnapshot.size} schools in database`);
-    return schoolsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  }
+interface School {
+  id: string;
+  slug: string;
+  name: string;
+  city: string;
+  status: string;
+  heroImageUrl?: string | null;
 }
 
-export default async function SchoolsPage() {
-  const schools = await getSchools();
+export default function SchoolsPage() {
+  const [schools, setSchools] = useState<School[]>([]);
+  const [filteredSchools, setFilteredSchools] = useState<School[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchSchools() {
+      try {
+        const response = await fetch('/api/debug-schools');
+        const data = await response.json();
+        setSchools(data.schools || []);
+        setFilteredSchools(data.schools || []);
+      } catch (error) {
+        console.error('Error fetching schools:', error);
+        setSchools([]);
+        setFilteredSchools([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSchools();
+  }, []);
+
+  useEffect(() => {
+    if (searchQuery.trim() === '') {
+      setFilteredSchools(schools);
+    } else {
+      const query = searchQuery.toLowerCase();
+      const filtered = schools.filter(
+        (school) =>
+          school.name.toLowerCase().includes(query) ||
+          school.city.toLowerCase().includes(query)
+      );
+      setFilteredSchools(filtered);
+    }
+  }, [searchQuery, schools]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -38,19 +69,27 @@ export default async function SchoolsPage() {
             <input
               type="text"
               placeholder="Search schools by name or city..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full rounded-lg border border-gray-300 py-3 pl-10 pr-4 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
         </div>
 
         {/* Schools Grid */}
-        {schools.length === 0 ? (
+        {loading ? (
           <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
-            <p className="text-gray-600">No schools found.</p>
+            <p className="text-gray-600">Loading schools...</p>
+          </div>
+        ) : filteredSchools.length === 0 ? (
+          <div className="rounded-lg border border-gray-200 bg-white p-12 text-center">
+            <p className="text-gray-600">
+              {searchQuery ? 'No schools match your search.' : 'No schools found.'}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {schools.map((school: any) => (
+            {filteredSchools.map((school) => (
               <SchoolCard
                 key={school.id}
                 slug={school.slug}

@@ -7,70 +7,50 @@ interface DocumentViewerProps {
   fileId: string;
   resourceType: string;
   resourceId: string;
+  fileName: string;
+  mimeType: string;
 }
 
-export default function DocumentViewer({ fileId, resourceType, resourceId }: DocumentViewerProps) {
-  const [fileName, setFileName] = useState<string>('');
-  const [mimeType, setMimeType] = useState<string>('');
+export default function DocumentViewer({ fileId, resourceType, resourceId, fileName, mimeType }: DocumentViewerProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const handleIframeLoad = () => {
+    console.log('[DocumentViewer] iframe loaded successfully');
+    setLoading(false);
+  };
+
+  const handleIframeError = () => {
+    console.error('[DocumentViewer] iframe failed to load');
+    setError('Failed to load document. Please try again.');
+    setLoading(false);
+  };
+
+  // Set a timeout to hide loading state even if iframe doesn't fire onLoad
   useEffect(() => {
-    console.log('[DocumentViewer] useEffect triggered', { fileId, resourceType, resourceId });
-    async function fetchMetadata() {
-      try {
-        setLoading(true);
-        console.log('[DocumentViewer] Fetching file metadata:', fileId);
-        
-        const response = await fetch(
-          `/api/drive/view?fileId=${fileId}&resourceType=${resourceType}&resourceId=${resourceId}`
-        );
+    const timeout = setTimeout(() => {
+      console.log('[DocumentViewer] Timeout reached, hiding loading state');
+      setLoading(false);
+    }, 5000); // 5 second timeout
 
-        console.log('[DocumentViewer] Response status:', response.status);
+    return () => clearTimeout(timeout);
+  }, []);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('[DocumentViewer] Error response:', errorText);
-          
-          // Check if this is a preview_unavailable error from CloudConvert conversion failure
-          try {
-            const errorJson = JSON.parse(errorText);
-            if (errorJson.error === 'preview_unavailable') {
-              throw new Error(errorJson.message || 'This document could not be converted for preview. Please try again shortly.');
-            }
-          } catch {
-            // If parsing fails, use the original error text
-          }
-          
-          throw new Error(`Failed to load document: ${response.status} ${errorText}`);
+  // Handle messages from iframe (for close button in error pages)
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'close') {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '/documents';
         }
-
-        // Get content type from response
-        const contentType = response.headers.get('Content-Type');
-        if (contentType) {
-          setMimeType(contentType);
-        }
-
-        // Try to get filename from Content-Disposition header
-        const contentDisposition = response.headers.get('Content-Disposition');
-        if (contentDisposition) {
-          const filenameMatch = contentDisposition.match(/filename="([^"]+)"/);
-          if (filenameMatch) {
-            setFileName(filenameMatch[1]);
-          }
-        }
-
-        setLoading(false);
-        console.log('[DocumentViewer] Metadata loaded successfully');
-      } catch (err) {
-        console.error('[DocumentViewer] Error:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load document');
-        setLoading(false);
       }
-    }
+    };
 
-    fetchMetadata();
-  }, [fileId, resourceType, resourceId]);
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
 
   if (loading) {
     return (
@@ -162,6 +142,8 @@ export default function DocumentViewer({ fileId, resourceType, resourceId }: Doc
           src={`/api/drive/view?fileId=${fileId}&resourceType=${resourceType}&resourceId=${resourceId}#toolbar=0`}
           className="w-full h-full border-0"
           title={fileName || 'Document'}
+          onLoad={handleIframeLoad}
+          onError={handleIframeError}
         />
       </div>
     </div>

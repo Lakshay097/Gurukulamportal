@@ -1,4 +1,9 @@
 import { createHmac } from 'crypto';
+import { getCachedPdf, setCachedPdf } from '@/lib/pdf-cache';
+import { downloadFileBytes } from '@/lib/drive';
+
+// Re-export setCachedPdf for use in preconvert-docs
+export { setCachedPdf };
 
 const GOTENBERG_URL = process.env.GOTENBERG_URL;
 const GOTENBERG_AUTH_TOKEN = process.env.GOTENBERG_AUTH_TOKEN;
@@ -52,6 +57,53 @@ export async function convertOfficeBufferToPdf(
   }
 
   return Buffer.from(await response.arrayBuffer());
+}
+
+/**
+ * Ensures a PDF is available for the given Office file, either from cache
+ * or by performing conversion. This is a shared function used by both the
+ * API route and the server component for pre-conversion.
+ *
+ * @param fileId - Google Drive file ID
+ * @param modifiedTime - File's modifiedTime for cache invalidation
+ * @param fileName - Original filename (with extension for Gotenberg)
+ * @param drive - Drive client instance
+ * @returns Buffer containing the PDF bytes
+ * @throws Error if conversion fails
+ */
+export async function ensureConvertedPdf(
+  fileId: string,
+  modifiedTime: string,
+  fileName: string,
+  drive: any
+): Promise<Buffer> {
+  console.log('[ensureConvertedPdf] Checking cache for:', fileId);
+
+  // Check cache first
+  const cachedPdf = await getCachedPdf(fileId, modifiedTime);
+  if (cachedPdf) {
+    console.log('[ensureConvertedPdf] Cache hit, returning cached PDF');
+    return cachedPdf;
+  }
+
+  console.log('[ensureConvertedPdf] Cache miss, performing live conversion');
+
+  // Download file bytes from Drive
+  console.log('[ensureConvertedPdf] Step 1: Downloading file bytes from Drive');
+  const rawBytes = await downloadFileBytes(fileId, drive);
+  console.log('[ensureConvertedPdf] Step 1 complete: Downloaded', rawBytes.length, 'bytes');
+
+  // Convert to PDF via Gotenberg
+  console.log('[ensureConvertedPdf] Step 2: Converting to PDF via LibreOffice');
+  const pdfBuffer = await convertOfficeBufferToPdf(rawBytes, fileName);
+  console.log('[ensureConvertedPdf] Step 2 complete: Conversion successful, PDF length:', pdfBuffer.length);
+
+  // Cache write - log errors but don't block response
+  setCachedPdf(fileId, modifiedTime, pdfBuffer).catch((err) => {
+    console.error('[ensureConvertedPdf] Cache write failed:', err);
+  });
+
+  return pdfBuffer;
 }
 
 /**
