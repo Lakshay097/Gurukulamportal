@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAppSession } from "@/lib/session";
 import { preconvertAllDocuments, preconvertFolder } from "@/lib/preconvert-docs";
 
-export const maxDuration = 600; // 10 minutes for large conversion jobs
+export const maxDuration = 300; // 5 minutes for large conversion jobs (max on Hobby plan)
 
 export async function POST(req: NextRequest) {
   const cronSecret = req.headers.get("x-cron-secret");
