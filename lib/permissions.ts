@@ -6,12 +6,12 @@ export async function canAccess(
   resourceType: string,
   resourceId: string
 ): Promise<boolean> {
-  console.log('[canAccess] userGroupKeys:', userGroupKeys);
-  console.log('[canAccess] resourceType:', resourceType);
-  console.log('[canAccess] resourceId:', resourceId);
-  
   if (userGroupKeys.includes('admin-central')) {
-    console.log('[canAccess] Access granted: admin-central');
+    return true;
+  }
+
+  // Allow guests to access document sections (public documents)
+  if (userGroupKeys.includes('guest') && resourceType === 'document_section') {
     return true;
   }
 
@@ -23,13 +23,10 @@ export async function canAccess(
       .where('resourceId', '==', resourceId)
       .get();
 
-    console.log('[canAccess] Permission rules found:', snapshot.docs.length);
     const hasAccess = snapshot.docs.some((doc) => {
       const rule = doc.data();
-      console.log('[canAccess] Checking rule:', rule);
       return userGroupKeys.includes(rule.groupKey) && rule.accessLevel !== 'none';
     });
-    console.log('[canAccess] Access result:', hasAccess);
     return hasAccess;
   } else {
     // Use Client SDK
@@ -40,16 +37,13 @@ export async function canAccess(
     );
 
     const rulesSnapshot = await getDocs(rulesQuery);
-    console.log('[canAccess] Permission rules found:', rulesSnapshot.docs.length);
     
     const hasAccess = rulesSnapshot.docs.some(
       (doc) => {
         const rule = doc.data();
-        console.log('[canAccess] Checking rule:', rule);
         return userGroupKeys.includes(rule.groupKey) && rule.accessLevel !== 'none';
       }
     );
-    console.log('[canAccess] Access result:', hasAccess);
     return hasAccess;
   }
 }

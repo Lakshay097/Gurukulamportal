@@ -1,16 +1,14 @@
 import { getServerSession } from "next-auth";
-import { cookies } from "next/headers";
 import { authOptions } from "./auth";
-import { getExternalTokenByCookieValue } from "./external-tokens";
 
 export interface AppSession {
-  kind: "internal" | "external";
+  kind: "guest" | "internal";
   userEmail: string | null;
   groupKeys: string[];
-  label: string | null;
 }
 
-export async function getAppSession(): Promise<AppSession | null> {
+export async function getAppSession(): Promise<AppSession> {
+  // Check NextAuth session first
   const nextAuthSession = await getServerSession(authOptions);
   const session = nextAuthSession as any;
   
@@ -19,21 +17,13 @@ export async function getAppSession(): Promise<AppSession | null> {
       kind: "internal",
       userEmail: session.user?.email ?? null,
       groupKeys: session.userGroupKeys,
-      label: null,
     };
   }
 
-  const cookieStore = await cookies();
-  const cookieToken = cookieStore.get("external_access_token")?.value;
-  if (!cookieToken) return null;
-
-  const record = await getExternalTokenByCookieValue(cookieToken);
-  if (!record) return null;
-
+  // No session means guest
   return {
-    kind: "external",
+    kind: "guest",
     userEmail: null,
-    groupKeys: [record.groupKey],
-    label: record.label,
+    groupKeys: ["guest"],
   };
 }

@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAppSession } from '@/lib/session';
 import { adminDb, useAdminSDK, db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import AccessGate from '@/components/access-gate';
@@ -55,8 +54,8 @@ function normalizeType(typeParam: string): string {
 }
 
 export default async function DocumentTypePage({ params }: { params: Promise<{ type: string }> }) {
-  const session = await getServerSession(authOptions);
-  const userGroupKeys = (session as any)?.userGroupKeys || [];
+  const session = await getAppSession();
+  const userGroupKeys = session.groupKeys;
   const { type } = await params;
   
   const normalizedType = normalizeType(type);
@@ -66,7 +65,7 @@ export default async function DocumentTypePage({ params }: { params: Promise<{ t
     notFound();
   }
   
-  console.log('[DocumentTypePage] Session:', session?.user?.email);
+  console.log('[DocumentTypePage] Session:', session.userEmail);
   console.log('[DocumentTypePage] User group keys:', userGroupKeys);
   console.log('[DocumentTypePage] Type:', type);
   console.log('[DocumentTypePage] Normalized type:', normalizedType);

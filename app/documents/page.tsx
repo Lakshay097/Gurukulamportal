@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAppSession } from '@/lib/session';
 import { adminDb, useAdminSDK, db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import AccessGate from '@/components/access-gate';
@@ -39,10 +38,10 @@ async function getDocumentSections(): Promise<DocumentSection[]> {
 }
 
 export default async function DocumentsPage() {
-  const session = await getServerSession(authOptions);
-  const userGroupKeys = (session as any)?.userGroupKeys || [];
+  const session = await getAppSession();
+  const userGroupKeys = session.groupKeys;
   
-  console.log('[DocumentsPage] Session:', session?.user?.email);
+  console.log('[DocumentsPage] Session:', session.userEmail);
   console.log('[DocumentsPage] User group keys:', userGroupKeys);
   
   const sections = await getDocumentSections();

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 const ADMIN_PREFIXES = ["/admin", "/api/admin"];
-const ALWAYS_PUBLIC = ["/login", "/api/auth", "/api/debug", "/unauthorized", "/external", "/view"];
+const ALWAYS_PUBLIC = ["/login", "/api/auth", "/api/debug", "/unauthorized", "/view"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
@@ -26,19 +26,16 @@ export async function proxy(req: NextRequest) {
 
   const isAdminRoute = ADMIN_PREFIXES.some((p) => pathname.startsWith(p));
   const nextAuthToken = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-  const externalCookie = req.cookies.get("external_access_token")?.value;
 
   if (isAdminRoute) {
-    if (!nextAuthToken || !(nextAuthToken.userGroupKeys as string[] | undefined)?.includes("admin-central")) {
-      return NextResponse.redirect(new URL("/unauthorized", req.url));
+    // Check NextAuth admin
+    if (nextAuthToken && (nextAuthToken.userGroupKeys as string[] | undefined)?.includes("admin-central")) {
+      return NextResponse.next();
     }
-    return NextResponse.next();
+    return NextResponse.redirect(new URL("/unauthorized", req.url));
   }
 
-  if (!nextAuthToken && !externalCookie) {
-    return NextResponse.redirect(new URL("/login", req.url));
-  }
-
+  // Allow guest access - no redirect to login
   return NextResponse.next();
 }
 

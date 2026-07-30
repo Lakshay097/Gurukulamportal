@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAppSession } from '@/lib/session';
 import { adminDb, useAdminSDK, db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import AccessGate from '@/components/access-gate';
@@ -55,11 +54,11 @@ function normalizeType(typeParam: string): string {
 }
 
 export default async function DocumentPathPage({ params }: { params: Promise<{ path: string[] }> }) {
-  const session = await getServerSession(authOptions);
-  const userGroupKeys = (session as any)?.userGroupKeys || [];
+  const session = await getAppSession();
+  const userGroupKeys = session.groupKeys;
   const { path } = await params;
   
-  console.log('[DocumentPathPage] Session:', session?.user?.email);
+  console.log('[DocumentPathPage] Session:', session.userEmail);
   console.log('[DocumentPathPage] User group keys:', userGroupKeys);
   console.log('[DocumentPathPage] Path:', path);
   

@@ -14,7 +14,7 @@ export async function GET(
   if (blocked) return blocked;
 
   const session = await getAppSession();
-  if (!session) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  // Guests have empty groupKeys, so they'll fail the canAccess check below
 
   const { fileId, n } = await params;
   const resourceType = req.nextUrl.searchParams.get("resourceType") ?? "document_section";

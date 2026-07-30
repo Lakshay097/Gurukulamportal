@@ -45,29 +45,27 @@ export const authOptions: AuthOptions = {
       if (account?.provider !== 'google') return false;
       
       const email = user.email;
-      const allowedDomain = process.env.ALLOWED_EMAIL_DOMAIN;
       
       console.log('[Auth signIn] Email:', email);
-      console.log('[Auth signIn] Allowed domain:', allowedDomain);
-      console.log('[Auth signIn] Email ends with domain:', email?.endsWith(`@${allowedDomain}`));
       
-      // Allow both custom domain and gmail.com addresses
-      const isValidDomain = email?.endsWith(`@${allowedDomain}`) || email?.endsWith('@gmail.com');
-      
-      if (!email || !isValidDomain) {
-        console.log('[Auth signIn] Sign in rejected');
+      if (!email) {
+        console.log('[Auth signIn] Sign in rejected - no email');
         return false;
       }
       
-      // Create user in Firebase on first login with zero groups and fetch group keys
+      // Check if email belongs to pw.live domain for internal-staff assignment
+      const isInternalStaff = email.endsWith('@pw.live');
+      console.log('[Auth signIn] Is internal-staff (pw.live domain):', isInternalStaff);
+      
+      // Create user in Firebase on first login and fetch group keys
       console.log('[Auth signIn] Calling ensureUser...');
       try {
-        const userId = await ensureUser(email, user.name, user.image);
+        const userId = await ensureUser(email, user.name, user.image, isInternalStaff);
         console.log('[Auth signIn] ensureUser succeeded');
         
         // Fetch user's groups and group keys
         let userData: any;
-        if (useAdminSDK && adminDb) {
+        if (useAdminSDK === true && adminDb) {
           const snapshot = await adminDb.collection('users').doc(userId).get();
           userData = snapshot.exists ? snapshot.data() : null;
         } else {
@@ -82,12 +80,12 @@ export const authOptions: AuthOptions = {
           if (groupIds.length > 0) {
             const groupPromises = groupIds.map(async (groupId: string) => {
               try {
-                if (useAdminSDK && adminDb) {
+                if (useAdminSDK === true && adminDb) {
                   const groupDoc = await adminDb.collection('groups').doc(groupId).get();
                   return groupDoc.exists ? groupDoc.data() : null;
                 } else {
-                  const groupDoc = await getDoc(doc(db, 'groups', groupId));
-                  return groupDoc.exists() ? groupDoc.data() : null;
+                  const groupDocSnap = await getDoc(doc(db, 'groups', groupId));
+                  return groupDocSnap.exists() ? groupDocSnap.data() : null;
                 }
               } catch (error) {
                 console.error('[Auth signIn] Error fetching group:', groupId, error);
@@ -101,6 +99,32 @@ export const authOptions: AuthOptions = {
                 groupKeysList.push(groupData.key);
               }
             });
+          }
+          
+          // Check if user is in admin-central allow-list
+          const isAdmin = await isAdminCentralUser(email);
+          if (isAdmin && !groupKeysList.includes('admin-central')) {
+            // Add admin-central group if not already present
+            if (useAdminSDK === true && adminDb) {
+              const adminGroupSnapshot = await adminDb.collection('groups').where('key', '==', 'admin-central').get();
+              if (!adminGroupSnapshot.empty) {
+                const adminGroupId = adminGroupSnapshot.docs[0].id;
+                await adminDb.collection('users').doc(userId).update({
+                  groups: [...groupIds, adminGroupId]
+                });
+                groupKeysList.push('admin-central');
+              }
+            } else {
+              const adminGroupQuery = query(collection(db, 'groups'), where('key', '==', 'admin-central'));
+              const adminGroupSnapshot = await getDocs(adminGroupQuery);
+              if (!adminGroupSnapshot.empty) {
+                const adminGroupId = adminGroupSnapshot.docs[0].id;
+                await setDoc(doc(db, 'users', userId), {
+                  groups: [...groupIds, adminGroupId]
+                }, { merge: true });
+                groupKeysList.push('admin-central');
+              }
+            }
           }
           
           // Add userGroupKeys to user object for JWT callback
@@ -144,22 +168,28 @@ export const authOptions: AuthOptions = {
 export const handler = NextAuth(authOptions);
 
 // Helper function to create or update user in Firebase
-export async function ensureUser(email: string, name?: string, image?: string) {
-  if (useAdminSDK && adminDb) {
+export async function ensureUser(email: string, name?: string, image?: string, isInternalStaff: boolean = false) {
+  if (useAdminSDK === true && adminDb) {
     // Use Admin SDK for server-side writes (bypasses security rules)
     const snapshot = await adminDb.collection('users').where('email', '==', email).get();
     
     if (snapshot.empty) {
-      // Find internal-staff group ID
-      const groupSnapshot = await adminDb.collection('groups').where('key', '==', 'internal-staff').get();
-      const internalStaffGroupId = groupSnapshot.empty ? null : groupSnapshot.docs[0].id;
+      // Only assign internal-staff group if email is from pw.live domain
+      let groups: string[] = [];
+      if (isInternalStaff) {
+        const groupSnapshot = await adminDb.collection('groups').where('key', '==', 'internal-staff').get();
+        const internalStaffGroupId = groupSnapshot.empty ? null : groupSnapshot.docs[0].id;
+        if (internalStaffGroupId) {
+          groups = [internalStaffGroupId];
+        }
+      }
       
       const newUserRef = adminDb.collection('users').doc();
       await newUserRef.set({
         email,
         name: name || null,
         image: image || null,
-        groups: internalStaffGroupId ? [internalStaffGroupId] : [],
+        groups,
         createdAt: new Date(),
       });
       return newUserRef.id;
@@ -175,24 +205,41 @@ export async function ensureUser(email: string, name?: string, image?: string) {
     const userSnapshot = await getDocs(usersQuery);
     
     if (userSnapshot.empty) {
-      // Find internal-staff group ID
-      const groupQuery = query(collection(db, 'groups'), where('key', '==', 'internal-staff'));
-      const groupSnapshot = await getDocs(groupQuery);
-      const internalStaffGroupId = groupSnapshot.empty ? null : groupSnapshot.docs[0].id;
+      // Only assign internal-staff group if email is from pw.live domain
+      let groups: string[] = [];
+      if (isInternalStaff) {
+        const groupQuery = query(collection(db, 'groups'), where('key', '==', 'internal-staff'));
+        const groupSnapshot = await getDocs(groupQuery);
+        const internalStaffGroupId = groupSnapshot.empty ? null : groupSnapshot.docs[0].id;
+        if (internalStaffGroupId) {
+          groups = [internalStaffGroupId];
+        }
+      }
       
-      // Create new user with internal-staff group
+      // Create new user with groups based on domain
       const newUserRef = doc(collection(db, 'users'));
       await setDoc(newUserRef, {
         email,
         name: name || null,
         image: image || null,
-        groups: internalStaffGroupId ? [internalStaffGroupId] : [],
+        groups,
         createdAt: new Date(),
       });
       return newUserRef.id;
     }
     
     return userSnapshot.docs[0].id;
+  }
+}
+
+// Helper function to check if user is in admin-central allow-list
+async function isAdminCentralUser(email: string): Promise<boolean> {
+  if (useAdminSDK === true && adminDb) {
+    const adminDoc = await adminDb.collection('admins').doc(email).get();
+    return adminDoc.exists;
+  } else {
+    const adminDoc = await getDoc(doc(db, 'admins', email));
+    return adminDoc.exists();
   }
 }
 

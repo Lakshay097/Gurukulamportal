@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAppSession } from '@/lib/session';
 import { adminDb, useAdminSDK, db } from '@/lib/firebase';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { notFound } from 'next/navigation';
@@ -111,8 +110,10 @@ export default async function DocumentTypePathPage({
   params: Promise<{ type: string; path: string[] }> 
 }) {
   const { type: typeParam, path } = await params;
-  const session = await getServerSession(authOptions);
-  const userGroupKeys = (session as any)?.userGroupKeys || [];
+  const session = await getAppSession();
+  const userGroupKeys = session.groupKeys;
+  
+  const accessToken = session.kind === 'internal' ? (session as any).accessToken : undefined;
 
   const normalizedType = normalizeType(typeParam);
   const validTypes = Object.values(DOC_SECTION_TYPES);
@@ -190,7 +191,6 @@ export default async function DocumentTypePathPage({
   let breadcrumbNames: string[] = [];
   let breadcrumbSlugs: string[] = [];
   let sectionId: string | null = null;
-  const accessToken = (session as any)?.accessToken;
 
   for (const section of sections) {
     if (!section.driveFolderId) continue;

@@ -16,7 +16,7 @@ export function SecureViewer({
   fileId: string;
   resourceType: string;
   resourceId: string;
-  viewerLabel: string; // user email or external token label, for watermark
+  viewerLabel: string; // user email, for watermark
 }) {
   const [meta, setMeta] = useState<ViewerMeta | null>(null);
   const [error, setError] = useState<string | null>(null);

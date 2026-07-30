@@ -17,8 +17,5 @@ service cloud.firestore {
     match /page_cache_meta/{key} {
       allow read, write: if false;
     }
-    match /externalAccessTokens/{token} {
-      allow read, write: if false; // server-only, via Admin SDK
-    }
   }
 }

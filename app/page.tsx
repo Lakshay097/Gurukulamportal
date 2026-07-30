@@ -1,6 +1,3 @@
-import { redirect } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
 import dynamic from 'next/dynamic';
 
 // Dynamically import client components for better code splitting
@@ -33,12 +30,6 @@ const Footer = dynamic(() => import('@/components/footer').then(mod => ({ defaul
 });
 
 export default async function Home() {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    redirect('/login');
-  }
-
   return (
     <>
       <HeroSection />

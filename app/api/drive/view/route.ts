@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAppSession } from '@/lib/session';
 import { canAccess } from '@/lib/permissions';
 import { getDriveClient, isConvertibleOfficeMimeType } from '@/lib/drive';
 import { getCachedPdf } from '@/lib/pdf-cache';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    const userGroupKeys = (session as any)?.userGroupKeys || [];
+    const session = await getAppSession();
+    const userGroupKeys = session.groupKeys;
 
     const searchParams = request.nextUrl.searchParams;
     const fileId = searchParams.get('fileId');
