@@ -1,5 +1,4 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
+import { getAppSession } from '@/lib/session';
 import { canAccess } from '@/lib/permissions';
 import { notFound } from 'next/navigation';
 import DocumentViewer from '@/components/document-viewer';
@@ -18,8 +17,8 @@ interface PageProps {
 }
 
 export default async function ViewDocumentPage({ params, searchParams }: PageProps) {
-  const session = await getServerSession(authOptions);
-  const userGroupKeys = (session as any)?.userGroupKeys || [];
+  const session = await getAppSession();
+  const userGroupKeys = session.groupKeys;
   const { fileId } = await params;
   const { resourceType = 'document_section', resourceId } = await searchParams;
 
